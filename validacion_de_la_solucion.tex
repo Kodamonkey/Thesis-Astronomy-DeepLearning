@@ -1,27 +1,25 @@
-\secnumbersection{VALIDACIÓN DE LA SOLUCIÓN}
+\secnumbersection{RESULTADOS EN BANDA L (VALIDACIÓN)}
 
-Se debe validar la solución propuesta. Esto significa probar o demostrar que la solución propuesta es válida para el entorno donde fue planteada.
+\section{Detección y clasificación en test pulsar}
+Resultados de detección y clasificación sobre pulsar de prueba (p.ej., B0355+54), con métricas S/N y precisión de clasificador.
 
-Tradicionalmente es una etapa crítica, pues debe comprobarse por algún medio que vuestra propuesta es básicamente válida. En el caso de un desarrollo de software es la construcción y sus pruebas; en el caso de propuestas de modelos, guías o metodologías podrían ser desde la aplicación a un caso real hasta encuestas o entrevistas con especialistas; en el caso de mejoras de procesos u optimizaciones, podría ser comparar la situación actual (previa a la memoria) con la situación final (cuando la memoria está ya implementada) en base a un conjunto cuantitativo de indicadores o criterios.
+\textbf{TODO}: Añadir figura (waterfall dedispersado) y tabla con S/N y tiempos detectados.
 
-\subsection{EJEMPLO DE COMO CITAR TABLAS}
+\section{FRB121102}
+Validación en banda L sobre FRB121102 (archivos de 32 GB): paridad con eventos reportados en la literatura y evidencia de detecciones adicionales. Reporte por archivo: MJD, rango de DM, S/N y figuras (tiempo--DM y \textit{waterfalls} dedispersados).
 
-Se colocó una tabla que se puede referenciar también desde el texto (Ver tabla \ref{table:coloquios}).
+\textbf{TODO}: Completar lista de archivos, eventos replicados y nuevos candidatos (IDs, ventanas, figuras).
 
-\begin{table}[h]
-    \centering
-    \caption{\label{table:coloquios} Coloquios del Ciclo de Charlas Informática.} Fuente: Elaboración Propia.
-    \begin{tabular}{|p{7cm}|p{7cm}|}
-        \hline
-        Título Coloquio & Presentador, País \\
-        \hline
-        ``Sensible, invisible, sometimes tolerant, heterogeneous, decentralized and interoperable... and we still need to assure its quality...''' & Guilherme Horta Travassos, Brasil.\\
-        \hline
-        ``Dispersed Multiphase Flow Modeling: From Environmental to Industrial Applications''' & Orlando Ayala, EE.UU.\\
-        \hline
-        ``Líneas de Producto Software Dinámicas para Sistemas atentos el Contexto''' & Rafael Capilla, España.\\
-        \hline
-        ... & ... \\
-        \hline
-    \end{tabular}
-\end{table}
+\section{Candidatos nuevos}
+Evidencia mínima replicable (ID de archivo, ventanas temporales, figuras) y discusión de plausibilidad.
+
+\textbf{TODO}: Incluir criterios de aceptación/rechazo y justificación por sub-bandas.
+
+\section{Ablations}
+Efecto de \textit{chunking}/\textit{slices}/\textit{overlap} sobre la sensibilidad y latencia.
+
+\section{Comparación contra baseline}
+Comparativa con un pipeline tradicional (si aplica), incluyendo tablas de recall/precision/F1 y FAR estimada.
+
+\section{Cross-match con literatura}
+Cruce con listas publicadas para FRB 121102 y discusión de consistencias/diferencias con trabajos de referencia.

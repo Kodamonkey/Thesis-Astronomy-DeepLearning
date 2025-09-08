@@ -1,0 +1,41 @@
+########################
+# Archivos LaTeX comunes
+########################
+*.aux
+*.log
+*.bbl
+*.blg
+*.toc
+*.lof
+*.lot
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.run.xml
+*.bcf
+*.xdv
+missfont.log
+
+########################
+# Directorios de compilación
+########################
+out/
+$OutDir/
+
+########################
+# Archivos del sistema (Windows/macOS)
+########################
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+########################
+# Logs y temporales generales
+########################
+*.tmp
+*.temp
+~$*
+.cache/
+
+src/

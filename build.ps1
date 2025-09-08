@@ -20,28 +20,42 @@ function Ensure-ToolExists {
 function Remove-AuxFiles {
     $auxFiles = @(
         'main.log', 'main.aux', 'main.blg', 'main.out', 'main.bbl',
-        'missfont.log', 'main.lof', 'main.lot', 'main.toc'
+        'missfont.log', 'main.lof', 'main.lot', 'main.toc',
+        'main.synctex.gz', 'main.fls', 'main.fdb_latexmk', 'main.run.xml', 'main.bcf', 'main.xdv'
     )
     foreach ($f in $auxFiles) {
         Remove-Item -LiteralPath $f -ErrorAction SilentlyContinue
     }
 }
 
+function Ensure-OutDir {
+    param([string]$OutDir)
+    if (-not (Test-Path -LiteralPath $OutDir)) {
+        New-Item -ItemType Directory -Path $OutDir | Out-Null
+    }
+}
+
 function Run-XeLaTeX {
-    Write-Host "Compilando con XeLaTeX..." -ForegroundColor Cyan
-    & xelatex -interaction=nonstopmode -halt-on-error main.tex | Out-Host
+    param([string]$OutDir)
+    Write-Host "Compilando con XeLaTeX (outdir=$OutDir)..." -ForegroundColor Cyan
+    & xelatex -interaction=nonstopmode -halt-on-error -output-directory=$OutDir main.tex | Out-Host
     if ($LASTEXITCODE -ne 0) {
-        throw "XeLaTeX falló. Revisa 'main.log' para detalles. Si 'main.pdf' está abierto en un visor (p. ej., Adobe), ciérralo e inténtalo de nuevo."
+        throw "XeLaTeX falló. Revisa 'out/main.log' para detalles. Si 'out/main.pdf' está abierto en un visor, ciérralo e inténtalo de nuevo."
     }
 }
 
 function Run-BibTeXIfNeeded {
-    if (Test-Path -LiteralPath 'main.aux') {
-        $needsBib = Select-String -Path 'main.aux' -Pattern '\\citation|\\bibdata|\\bibstyle' -Quiet
+    param([string]$OutDir)
+    $auxPath = Join-Path $OutDir 'main.aux'
+    if (Test-Path -LiteralPath $auxPath) {
+        $needsBib = Select-String -Path $auxPath -Pattern '\\citation|\\bibdata|\\bibstyle' -Quiet
         if ($needsBib) {
             Write-Host "Ejecutando BibTeX..." -ForegroundColor Cyan
+            Push-Location $OutDir
             & bibtex main | Out-Host
-            if ($LASTEXITCODE -ne 0) {
+            $code = $LASTEXITCODE
+            Pop-Location
+            if ($code -ne 0) {
                 throw "BibTeX falló. Revisa 'main.blg' para detalles."
             }
         }
@@ -52,26 +66,36 @@ function Run-BibTeXIfNeeded {
 }
 
 try {
-    if ($Clean) { Remove-AuxFiles }
+    if ($Clean) {
+        Remove-AuxFiles
+        if (Test-Path -LiteralPath 'out') {
+            Write-Host "Eliminando carpeta 'out/'..." -ForegroundColor DarkYellow
+            Remove-Item -Recurse -Force -LiteralPath 'out' -ErrorAction SilentlyContinue
+        }
+    }
 
     Ensure-ToolExists -ToolName 'xelatex' | Out-Null
     $bibtexPresent = $true
     try { Ensure-ToolExists -ToolName 'bibtex' | Out-Null } catch { $bibtexPresent = $false }
     if (-not $bibtexPresent) { Write-Host "Advertencia: 'bibtex' no está en PATH. Intentaré compilar sin bibliografía." -ForegroundColor DarkYellow }
 
-    Run-XeLaTeX
-    if ($bibtexPresent) { Run-BibTeXIfNeeded }
-    Run-XeLaTeX
-    Run-XeLaTeX
+    $outDir = 'out'
+    Ensure-OutDir -OutDir $outDir
 
-    if (Test-Path -LiteralPath 'main.pdf') {
-        $pdfPath = Resolve-Path -LiteralPath 'main.pdf'
+    Run-XeLaTeX -OutDir $outDir
+    if ($bibtexPresent) { Run-BibTeXIfNeeded -OutDir $outDir }
+    Run-XeLaTeX -OutDir $outDir
+    Run-XeLaTeX -OutDir $outDir
+
+    $pdfCandidate = Join-Path $outDir 'main.pdf'
+    if (Test-Path -LiteralPath $pdfCandidate) {
+        $pdfPath = Resolve-Path -LiteralPath $pdfCandidate
         Write-Host ("PDF generado: {0}" -f $pdfPath) -ForegroundColor Green
         if ($View) { Start-Process $pdfPath }
         exit 0
     }
     else {
-        throw "La compilación terminó sin errores pero no se encontró 'main.pdf'. Revisa 'main.log'."
+        throw "La compilación terminó sin errores pero no se encontró 'out\\main.pdf'. Revisa 'out\\main.log'."
     }
 }
 catch {

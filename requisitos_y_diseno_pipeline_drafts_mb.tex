@@ -1,0 +1,183 @@
+\secnumbersection{REQUISITOS Y DISEÑO (ALTO NIVEL) DEL PIPELINE DRAFTS-MB}
+
+\section{Requisitos funcionales del pipeline (qué debe cumplir)}
+Ingesta, preprocesado, detección, clasificación, visualización, reporte y trazabilidad, con configuración reproducible.
+
+\textbf{TODO (qué completar aquí)}: Detallar por módulo: entradas (formatos, tamaños), salidas (artefactos/figuras/tablas), contratos (JSON/YAML), y 1 ejemplo mínimo end-to-end (archivo→candidatos→figuras).
+
+\section{Requisitos no funcionales (latencia, RAM, reproducibilidad)}
+Operación en tiempo real/\textit{near-real-time}, uso de RAM y reproducibilidad controlada (semillas, versiones, contenedores).
+
+\textbf{TODO (parámetros objetivo)}: Fijar límites de latencia por archivo/bloque, tope de RAM y CPU/GPU; incluir política de semillas/versionado (manifest con commit/pesos/entorno) y criterio de éxito.
+
+\section{Arquitectura: módulos, flujos y contratos (diseño de alto nivel)}
+Arquitectura en cinco fases: (1) ingesta de datos, (2) preprocesamiento, (3) procesamiento (detección y clasificación), (4) visualización, (5) resultados y registro. 
+Definición de módulos, interfaces I/O, configuración, registro (logging) y manejo de errores. Los modelos se usan como APIs consumibles para aislar dependencias.
+
+\textbf{TODO (diagrama)}: Bocetar las conexiones entre módulos (puertos/interfaces) y definir estados de error/retentos (qué hacer ante fallas parciales y reintentos).
+
+\section{Modelo de datos y trazabilidad temporal (timestamps y ventanas)}
+Timestamps absolutos (MJD), ventanas de visualización y metadatos mínimos para reproducibilidad.
+
+\textbf{TODO (checklist)}: Enumerar metadatos obligatorios por bloque (MJD, frecuencia de referencia, TBIN, NCHAN, ancho de banda, identificador de backend) y cómo se validan/coinciden entre ejecuciones.
+
+\subsection*{Notación y variables}
+\begin{description}
+  \item[$\mathrm{DM}$] Medida de dispersión (pc\,cm$^{-3}$); $k_{\mathrm{DM}}=4.1488\times10^3$\,ms\,MHz$^{2}$\,pc$^{-1}$\,cm$^{3}$.
+  \item[$\nu_{\min},\,\nu_{\max},\,\nu_{\mathrm{ref}}$] Frecuencias (MHz) mínima, máxima y de referencia; $\nu_c$ es la del canal $c$.
+  \item[$\Delta\nu$] Ancho de canal en MHz; $\nu_{\mathrm{GHz}}$ es la frecuencia en GHz.
+  \item[$\Delta t$] Resolución temporal (ms); $\Delta t_{\mathrm{samp}}$ resolución de muestreo.
+  \item[$W,\,\tau_{\mathrm{sc}},\,\tau_{\mathrm{chan}}$] Ancho intrínseco y ensanchamientos por scattering y canal.
+  \item[$D,\,C,\,S,\,N$] Nº de DM, canales, muestras por slice y muestras totales en tiempo.
+  \item[$H\times W$] Tamaño de entrada del detector; $E_{\mathrm{det}},\,E_{\mathrm{cls}}$ costos de inferencia.
+  \item[$\alpha,\,\beta$] Constantes de costo (dedispersión, extracción de rasgos/peaks).
+  \item[$O$] Solapamiento (muestras) entre ventanas; $B,\,B'$ nº de candidatos por slice (ramas main/HF).
+\end{description}
+
+\section{Estrategias de performance (chunking/slicing/overlap/decimado)}
+Procesamiento por \textit{chunks} y \textit{slices} con \textit{overlap}, gestión de memoria y paralelismo. Diseño consciente de RAM: coordinación chunk--slice, solapamiento entre chunks para evitar pérdidas en bordes por rangos de DM, y controles de resolución/decimado ajustables por el usuario.
+
+\textbf{TODO (valores guía)}: Proponer valores por defecto y rangos recomendados para chunk, slice, overlap y decimados; justificar según ecuaciones de smearing y presupuesto de memoria.
+
+\subsection*{Notas sobre S/N y decimado}
+Relación S/N (aprox.) al sumar muestras/canales tras dedispersión:
+\begin{equation}\label{eq:snr_scaling}
+\mathrm{SNR}\ \propto\ \frac{A}{\sigma}\,\sqrt{N_{\mathrm{sum}}}.
+\end{equation}
+
+Elección de decimado \(k\) y filtro tipo boxcar:
+\begin{equation}\label{eq:weff_decimation}
+W_{\mathrm{eff}}\ \approx\ k\,\Delta t_{\mathrm{samp}},\quad \text{maximizar S/N con ancho de filtro} \ \approx W_{\mathrm{eff}}.
+\end{equation}
+
+\section{Criterios formales: paso de DM por smearing (diseño de $\Delta$DM/overlap)}
+Se definen pasos de DM y \textit{overlap} mínimo con base en preservar el S/N de pulsos de ancho \(W\). Una relación práctica es mantener el ensanchamiento por dispersión inferior al ancho objetivo.
+
+\textbf{TODO (ejemplo numérico)}: Aplicar las fórmulas a tu banda (\(\nu_{\min},\nu_{\max}\)), TBIN y ancho objetivo \(W\) para derivar \(\Delta\mathrm{DM}\) y overlap mínimos; incluir un caso de referencia.
+
+\subsection*{Ecuaciones relevantes}
+Retardo de dispersión entre dos frecuencias (\(\nu\) en MHz):
+\begin{equation}\label{eq:dm_delay_band}
+\Delta t_{\mathrm{DM}}\,[\mathrm{ms}] \approx 4.1488\times10^{3}\,\mathrm{DM}\,\big(\nu_1^{-2}-\nu_2^{-2}\big).
+\end{equation}
+
+Smearing intra-canal (\(\nu\) en GHz, \(\Delta\nu\) en MHz):
+\begin{equation}\label{eq:smear_intrach}
+\tau_{\mathrm{smear}}\,[\mu\mathrm{s}] \approx 8.3\,\mathrm{DM}\,\frac{\Delta\nu_{\mathrm{MHz}}}{\nu_{\mathrm{GHz}}^{3}}.
+\end{equation}
+
+Error por DM desajustada en la banda \([\nu_{\min},\nu_{\max}]\):
+\begin{equation}\label{eq:dm_error}
+\tau_{\mathrm{err}}(\Delta\mathrm{DM})\,[\mathrm{ms}] \approx 4.1488\,\Delta\mathrm{DM}\,\big(\nu_{\min}^{-2}-\nu_{\max}^{-2}\big).
+\end{equation}
+
+Condición de diseño para el paso de DM (con \(f\in[0.2,0.5]\)):
+\begin{equation}\label{eq:dm_step_criterion}
+\tau_{\mathrm{err}}(\Delta\mathrm{DM})\ \le\ f\,W_{\mathrm{eff}}\ \Rightarrow\ \Delta\mathrm{DM}\ \le\ \frac{f\,W_{\mathrm{eff}}}{4.1488\,\big(\nu_{\min}^{-2}-\nu_{\max}^{-2}\big)}.
+\end{equation}
+
+Solape mínimo entre \textit{chunks}:
+\begin{equation}\label{eq:overlap_min}
+\mathrm{overlap}_{\min}\ \ge\ \Delta t_{\mathrm{DM}}\big(\mathrm{DM}_{\max\ \mathrm{ventana}}\big)\ +\ \mathrm{margen}_{\mathrm{filtro}}.
+\end{equation}
+
+\section{Control del trials factor y tasas de error (FAR/FPR)}
+Estimación del \textit{trials factor} en el plano DM\(\times\)tiempo y definición preliminar de FAR/FPR para la toma de decisiones.
+
+\textbf{TODO (umbrales)}: Especificar FAR/h objetivo y derivar el umbral \(z\) asociado (con \(N_{\mathrm{trials/h}}\)); documentar impacto en recall/precision.
+
+\subsection*{Ecuaciones relevantes}
+Número de pruebas aproximado:
+\begin{equation}\label{eq:ntrials}
+N_{\mathrm{trials}}\ \approx\ N_{\mathrm{DM}}\,N_{\mathrm{tiempo}}\,N_{\mathrm{anchos}}.
+\end{equation}
+
+Para ruido gaussiano, probabilidad de falso por prueba con umbral \(z\):
+\begin{equation}\label{eq:qfunc}
+p_0\ \approx\ Q(z),\quad Q(z)=\tfrac{1}{\sqrt{2\pi}}\int_{z}^{\infty}\!e^{-u^2/2}\,du.
+\end{equation}
+
+Tasa de falsas alarmas por hora (FAR) y elección de \(z\):
+\begin{equation}\label{eq:far}
+\mathrm{FAR}\ \approx\ N_{\mathrm{trials/h}}\,p_0\ \Rightarrow\ z\ =\ Q^{-1}\!\Big(\tfrac{\mathrm{FAR}}{N_{\mathrm{trials/h}}}\Big).
+\end{equation}
+
+\section{DM--tiempo y dedispersión (fundamentos)}
+\noindent \textbf{Retardo por canal} respecto de una referencia \(\nu_{\mathrm{ref}}\) (frecuencias en MHz):
+\begin{equation}\label{eq:delta_t_dm_ref}
+\Delta t_{\mathrm{DM}}(c;\,\mathrm{DM})\,[\mathrm{ms}] = 4.1488\times10^{3}\,\mathrm{DM}\,\big(\nu_c^{-2} - \nu_{\mathrm{ref}}^{-2}\big).
+\end{equation}
+\noindent \textbf{Transformación temporal:}
+\begin{equation}\label{eq:tprime}
+t' = t + \Delta t_{\mathrm{DM}}(c;\,\mathrm{DM}).
+\end{equation}
+\noindent \textbf{Cubo tiempo--DM (suma en frecuencia):}
+\begin{equation}\label{eq:cube_sum}
+X(d,t) = \sum_{c=1}^{C} x\!\left(c,\ t - \frac{\Delta t_{\mathrm{DM}}(c;\,\mathrm{DM}_d)}{\Delta t}\right).
+\end{equation}
+\noindent \textbf{Ancho efectivo del pulso:}
+\begin{equation}\label{eq:weff}
+W_{\mathrm{eff}}^2 = W^2 + \tau_{\mathrm{sc}}^2 + \tau_{\mathrm{chan}}^2,\qquad \tau_{\mathrm{chan}} \approx 4.1488\,\mathrm{ms}\,\mathrm{DM}\,(\nu_{\min}^{-2}-\nu_{\max}^{-2}).
+\end{equation}
+\noindent \textbf{Espaciado de DM} (pérdida \(\lesssim\) una muestra):
+\begin{equation}\label{eq:dm_spacing}
+\Delta\mathrm{DM} \lesssim \frac{\Delta t}{4.1488\,\mathrm{ms}\,(\nu_{\min}^{-2}-\nu_{\max}^{-2})}.
+\end{equation}
+
+\section{Coste computacional}
+\noindent \textbf{Tiempo por \emph{slice} (rama principal):}
+\begin{equation}\label{eq:t_slice_main}
+T_{\mathrm{slice}}^{\mathrm{(main)}} \approx \underbrace{\alpha\,D\,C\,S}_{\text{dedispersión}} + \underbrace{E_{\mathrm{det}}(H,W)}_{\text{infer. CenterNet}} + \underbrace{B\,E_{\mathrm{cls}}}_{\text{infer. ResNet}}.
+\end{equation}
+\noindent \textbf{Total por archivo:}
+\begin{equation}\label{eq:t_total_main}
+T_{\mathrm{tot}}^{\mathrm{(main)}} \approx \frac{N}{S}\,\Bigl(\alpha\,D\,C\,S + E_{\mathrm{det}} + B\,E_{\mathrm{cls}}\Bigr) = \alpha\,N\,D\,C + \frac{N}{S}\,\Bigl(E_{\mathrm{det}} + B\,E_{\mathrm{cls}}\Bigr).
+\end{equation}
+\noindent \textbf{Alta frecuencia (rama sin detector de objetos):}
+\begin{equation}\label{eq:t_slice_hf}
+T_{\mathrm{slice}}^{\mathrm{(HF)}} \approx \alpha\,D\,C\,S + \beta\,D\,S + B'\,E_{\mathrm{cls}},
+\end{equation}
+\begin{equation}\label{eq:t_total_hf}
+T_{\mathrm{tot}}^{\mathrm{(HF)}} \approx \alpha\,N\,D\,C + \beta\,N\,D + \frac{N}{S}\,B'\,E_{\mathrm{cls}}.
+\end{equation}
+
+\section{Flujo de inferencia (t--DM $\to$ detección $\to$ clasificación)}
+Generar mapa tiempo--DM para detección (CenterNet) \(\to\) extraer el candidato y dedispersarlo óptimamente \(\to\) clasificar (ResNet) \(\to\) registrar y visualizar (\textit{waterfall} y tiempo--DM consistentes).
+
+\textbf{TODO (trazabilidad de bloques)}: Indicar cómo se registra cada etapa (ID de bloque, tiempos relativos/absolutos, parámetros de DM y ventanas) para permitir auditoría posterior.
+
+\section{Pseudocódigo del flujo (chunk $\to$ slice $\to$ detección $\to$ clasificación)}
+\begin{verbatim}
+Entrada: archivo PSRFITS/FIL, config {DM_min, DM_max, DM_step, chunk_ms, slice_ms, overlap_ms}
+Salida: lista de candidatos {t_abs, DM, SNR, bbox, clase, figuras}
+
+for chunk in ventanas_de_tiempo(archivo, tamaño=chunk_ms, solape=overlap_ms):
+  # 1) Preprocesado por chunk
+  datos = cargar(chunk)
+  datos = corregir_bandpass_y_baseline(datos)
+  mascara = generar_mascara_RFI(datos)   # AOFlagger/robusta
+  datos = aplicar_mascara(datos, mascara)
+
+  # 2) Dedispersión y mapa tiempo–DM (slicing temporal)
+  mapa_tDM = crear_mapa_tiempo_DM(datos, DM_min, DM_max, DM_step)
+  for slice in ventanas_de_tiempo(mapa_tDM, tamaño=slice_ms, solape=overlap_ms):
+    # 3) Detección (CenterNet) sobre el slice del mapa t–DM
+    bboxes = det_model.predict(slice)
+    for bbox in bboxes_filtradas(bboxes, umbral_det):
+      # 4) Extracción y dedispersión óptima del candidato
+      t0, DM0 = bbox.centro_t, bbox.centro_DM
+      wf = extraer_waterfall(datos, ventana_alrededor=t0)
+      wf_dedisp = dedispersar(wf, DM0)
+
+      # 5) Clasificación (ResNet) con recortes consistentes (t–DM y waterfall)
+      recorte_tDM = recortar(mapa_tDM, bbox)
+      puntaje = cls_model.predict({recorte_tDM, wf_dedisp})
+      if puntaje.clase == "FRB" y puntaje.conf > umbral_cls:
+        registrar_candidato(t_abs=t0_abs, DM=DM0, SNR=medir_SNR(wf_dedisp),
+                            bbox=bbox, clase=puntaje, figuras={wf_dedisp, recorte_tDM})
+\end{verbatim}
+
+\section{Temporalidad precisa}
+Continuidad de tiempo absoluto entre chunks, corrección temporal tipo PRESTO ante cambios de frecuencia de referencia y metadatos exactos por bloque.
+
+

@@ -1,5 +1,15 @@
-\secnumbersection{CONCLUSIONES}
+\secnumbersection{CONCLUSIONES Y TRABAJO FUTURO}
 
-Las Conclusiones son, según algunos especialistas, el aspecto principal de una memoria, ya que reflejan el aprendizaje final del autor del documento. En ellas se tiende a considerar los alcances y limitaciones de la propuesta de solución, establecer de forma simple y directa los resultados, discutir respecto a la validez de los objetivos formulados, identificar las principales contribuciones y aplicaciones del trabajo realizado, así como su impacto o aporte a la organización o a los actores involucrados. Otro aspecto que tiende a incluirse son recomendaciones para quienes se sientan motivados por el tema y deseen profundizarlo, o lineamientos de una futura ampliación del trabajo.
+\subsection{Resumen de aportes y respuestas a las preguntas}
+Se sintetizan las contribuciones técnicas del pipeline DRAFTS-MB, su desempeño en banda L y su extensión a frecuencias milimétricas, respondiendo las preguntas de investigación sobre sensibilidad y precisión comparativas.
 
-\underline{Todo esto debe sintetizarse en al menos 5 páginas.}
+\subsection{Lecciones aprendidas de llevar DRAFTS a producción}
+Se discuten hallazgos sobre integración de modelos, control del \textit{trials factor}, robustez a RFI y gestión de memoria/latencia en operación \textit{near-real-time}.
+
+\subsection{Próximos pasos}
+Se delinean reentrenos específicos para mm-wave, adaptación de dominio, procesamiento en flujo continuo (streaming) e integración con pipelines de observatorios.
+
+\textbf{TODO}: Priorizar 3 acciones con plazos tentativos (p.ej., reentrenos mm-wave, pruebas en Band 3, integración con backend).
+
+\subsection{Líneas de trabajo futuro}
+Se proponen líneas para localización y consistencia por sub-bandas, validaciones cruzadas con pipelines externos (CHIME/FRB, MeerTRAP, ASKAP/CRAFT), y estrategias FAIR para datos/modelos. Si la detección falla en mm-wave por falta de \textit{bow-tie} (línea casi recta en tiempo--DM), reentrenar/adaptar el modelo o desarrollar uno nuevo específico para regímenes milimétricos con \textit{plots} característicos.

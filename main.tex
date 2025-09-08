@@ -10,14 +10,14 @@
 
 % NOTE: Leer nota en el README sobre la font.
 
-\newcommand{\titulo}{Título de la memoria}
-\newcommand{\ciudad}{Valparaíso} % e.g. Valparaíso
+\newcommand{\titulo}{Desarrollo de un pipeline basado en DRAFTS para detección y clasificación de transientes de radio con adaptación y extensión en regímenes de alta frecuencia}
+\newcommand{\ciudad}{San Joaquín} % e.g. Valparaíso
 % TODO: Consultar el formato de los nombres:
-\newcommand{\nombrealumno}{Sebastian Salgado Polanco}
+\newcommand{\nombrealumno}{Sebastián Salgado Polanco}
 \newcommand{\nombreprofesor}{Daniela Opitz}
 \newcommand{\nombrecorreferente}{Marylin Cruces}
 % Mes y año del examen
-\newcommand{\mesexamen}{Diciembre}
+\newcommand{\mesexamen}{Enero}
 \newcommand{\anioexamen}{2025}
 % Dedicatoria y agradecimientos
 \newcommand{\dedicatoria}{
@@ -78,7 +78,7 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 % Paquete para definir los formatos de los títulos
 \usepackage[explicit]{titlesec}
 
-\titleformat{name=\section}[block]{\fontsize{16}{24}\selectfont\bfseries}{}{0pt}{#1}
+\titleformat{name=\section}[block]{\fontsize{16}{24}\selectfont\bfseries}{\thesection}{0.5em}{#1}
 \titleformat{name=\section,numberless}[block]{\fontsize{16}{24}\selectfont\bfseries}{}{0pt}{#1}
 \titlespacing*{name=\section}{0pt}{0pt}{0.5cm}
 \titlespacing*{name=\section,numberless}{0pt}{0pt}{0.5cm}
@@ -88,6 +88,7 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 
 % Paquetes de utilidad general
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
@@ -125,12 +126,21 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
     \renewcommand{\headrulewidth}{1pt}
 }
 
+% Ajuste de altura de encabezado para evitar advertencias de fancyhdr
+\setlength{\headheight}{24pt}
+
 % Comandos para secciones
+% Utilidades generales
+\newcommand{\fuente}[1]{\par\small Fuente: #1}
+%
+% Fin utilidades
+%
 \newcommand{\secnumbersection}[1]{
-\addtocounter{section}{1}
+\addtocounter{chapter}{1}
+\setcounter{section}{0}
 \phantomsection
-\section*{CAPÍTULO \thesection \texorpdfstring{\\}\ #1}
-\addcontentsline{toc}{section}{CAPÍTULO \thesection : #1}
+\section*{CAPÍTULO \thechapter \texorpdfstring{\\}\ #1}
+\addcontentsline{toc}{section}{CAPÍTULO \thechapter : #1}
 \setcounter{subsection}{0}
 }
 \newcommand{\secnumberlesssection}[1]{
@@ -222,13 +232,21 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 \input{introduccion}
 
 \newpage
-\input{definicion_del_problema}
-\newpage
 \input{marco_conceptual}
 \newpage
-\input{propuesta_de_solucion}
+\input{estado_del_arte}
+\newpage
+\input{requisitos_y_diseno_pipeline_drafts_mb}
+\newpage
+\input{implementacion}
+\newpage
+\input{metodologia_experimental_y_datasets}
 \newpage
 \input{validacion_de_la_solucion}
+\newpage
+\input{extension_a_frecuencias_milimetricas_alma}
+\newpage
+\input{discusion_y_amenazas_a_la_validez}
 \newpage
 \input{conclusiones}
 
@@ -241,3 +259,4 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 \bibliography{bibliografia}{}
 
 \end{document}
+

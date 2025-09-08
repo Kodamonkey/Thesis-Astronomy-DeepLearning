@@ -7,6 +7,7 @@
         "-synctex=1",
         "-interaction=nonstopmode",
         "-file-line-error",
+        "-output-directory=%OUTDIR%",
         "%DOC%"
       ]
     },
@@ -14,7 +15,7 @@
       "name": "bibtex",
       "command": "C:\\Users\\sebas\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\bibtex.exe",
       "args": [
-        "%DOCFILE%"
+        "%OUTDIR%/%DOCFILE%"
       ]
     }
   ],
@@ -29,7 +30,9 @@
       ]
     }
   ],
-  "latex-workshop.latex.recipe.default": "first"
+  "latex-workshop.latex.outDir": "./out",
+  "latex-workshop.latex.recipe.default": "first",
+  "latex-workshop.view.pdf.viewer": "tab"
 }
 
 

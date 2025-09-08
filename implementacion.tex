@@ -1,0 +1,125 @@
+\secnumbersection{IMPLEMENTACIÓN}
+
+\section{Lectura de PSRFITS/FIL y metadatos (implementación concreta)}
+El pipeline soporta dos familias de formatos de búsqueda de pulsos: PSRFITS (SUBINT) y filterbank SIGPROC. En ambos casos se persigue el mismo objetivo: (i) identificar correctamente la resolución temporal, el número de canales y la duración total; (ii) construir el eje de frecuencias con el orden físico adecuado; (iii) seleccionar o derivar la polarización de trabajo; y (iv) garantizar trazabilidad temporal absoluta (MJD) y coherencia entre bloques.
+
+\subsection*{PSRFITS (SUBINT): extracción y coherencia (detalles prácticos)}
+\begin{itemize}
+  \item \textbf{Resolución temporal y tamaño}: se usa el tiempo por muestra declarado (TBIN) y el producto muestras-por-subintegración (NSBLK) por número de subintegraciones (NAXIS2) para estimar la longitud total del archivo en muestras.
+  \item \textbf{Canales y polarización}: se obtiene el número de canales (NCHAN) y el modo de polarización (NPOL/POL\_TYPE); por defecto se trabaja con intensidad (Stokes I) o con la componente indicada, manteniendo un arreglo de datos con ejes (tiempo, polarización, canal).
+  \item \textbf{Eje de frecuencias}: si el archivo incluye la columna de frecuencias por canal, se adopta directamente; de lo contrario, se reconstruye a partir de los parámetros WCS (valor de referencia, incremento y pixel de referencia). Se invierte el eje si las frecuencias vienen en orden descendente para trabajar internamente en orden ascendente.
+  \item \textbf{Tiempo absoluto (MJD)}: se calcula el inicio de la observación combinando día/milisegundos y posibles offsets, y se corrige por subintegraciones inicialmente omitidas (NSUBOFFS) o por desplazamientos de la primera fila (OFFS\_SUB), lo que preserva la continuidad temporal entre bloques y permite reporte con cronología absoluta.
+  \item \textbf{Emisión por bloques}: la lectura se realiza en ventanas temporales (chunks) con solapamientos configurables para evitar pérdidas en bordes; junto a cada bloque de datos se emiten metadatos con los índices válidos, el tamaño efectivo de la ventana, el tiempo relativo (en segundos) y, cuando existe, el tiempo absoluto asociado (MJD corregido).
+\end{itemize}
+
+\subsection*{Filterbank (.fil): cabeceras y construcción del eje de frecuencias (detalles prácticos)}
+\begin{itemize}
+  \item \textbf{Resolución temporal y tamaño}: se toma la resolución temporal por muestra (tsamp) y el número de muestras totales; si el número de muestras no está en cabecera, se deduce a partir del tamaño del archivo y la configuración de canales, bits por muestra y polarizaciones.
+  \item \textbf{Canales y frecuencias}: con el número de canales y la pareja (frecuencia inicial, paso por canal) se construye el eje de frecuencias; si el paso por canal es negativo, se invierte el orden para trabajar de forma ascendente.
+  \item \textbf{Emisión por bloques}: de manera análoga a PSRFITS, se leen ventanas con solape y se acompaña cada bloque con metadatos que describen su posición temporal relativa y su geometría en frecuencia.
+\end{itemize}
+
+\subsection*{Metadatos mínimos por bloque (para auditoría y reproducibilidad)}
+De cara a la reproducibilidad y auditoría, cada bloque emitido debe llevar al menos: (i) índices de inicio y fin válidos dentro del archivo; (ii) número de muestras efectivas en la ventana; (iii) resolución temporal de la muestra y tiempos relativos de inicio/fin; (iv) número de canales y forma del bloque; (v) indicadores de solape aplicado a izquierda/derecha; y, cuando corresponde, (vi) tiempo absoluto de inicio de la observación (MJD) y su corrección por subintegraciones omitidas. Esta convención permite trazar cada candidato a su ventana de origen y cruzar resultados entre ejecuciones.
+
+\begin{figure}[h!]
+\centering
+\fbox{\parbox[c][0.26\textheight][c]{0.95\linewidth}{\centering
+\textit{(Diagrama conceptual de bloque y metadatos)}\\[4pt]
+\begin{tabular}{@{}ll@{}}
+Dato & Tensor (tiempo, polarización, canal)\\
+\hline
+Índices & start\_sample, end\_sample, actual\_chunk\_size\\
+Tiempo relativo & tbin\_sec, t\_rel\_start\_sec, t\_rel\_end\_sec\\
+Tiempo absoluto & tstart\_mjd, tstart\_mjd\_corr (si aplica)\\
+Geometría & nchans, shape, dtype\\
+Solape & overlap\_left, overlap\_right\\
+\end{tabular}}}
+\caption{Convención de metadatos asociados a cada bloque emitido por el lector.}
+\label{fig:block_metadata}
+\fuente{Elaboración propia}
+\end{figure}
+
+\section{Preprocesado}
+Reducción de muestreo (down-sampling), corrección de banda/baseline y máscaras de RFI (AOFlagger y estrategias robustas).
+
+\textbf{TODO}: Enlazar `src/preprocessing/` (bandpass, baseline, RFI) y parámetros por defecto.
+
+\section{Generación de imágenes}
+Producción de mapas tiempo--DM y \textit{waterfalls} dedispersados para inspección y entrada a modelos.
+
+\textbf{TODO}: Enlazar funciones para mapa t--DM y waterfall con formatos de salida.
+
+\section{Integración de modelos}
+Los modelos de DRAFTS (CenterNet para detección y ResNet para clasificación) se integran como \textit{APIs} consumibles. El flujo estándar (bajas frecuencias) detecta en tiempo--DM (CenterNet) y clasifica con ResNet, aplicando umbrales y NMS.
+
+\textbf{TODO}: Apuntar a `src/models/` (carga de pesos, versiones/hashes) y `src/detection/`, `src/analysis/`.
+
+\section{Diagrama de bloques del pipeline}
+\begin{center}
+\begin{tabular}{|p{0.9\textwidth}|}
+\hline
+\textbf{Ingesta} $\to$ \textbf{Preprocesado (bandpass/baseline, RFI)} $\to$ \textbf{Mapa tiempo--DM} $\to$ \\
+\textbf{Detección (CenterNet)} $\to$ \textbf{Dedispersión óptima} $\to$ \textbf{Clasificación (ResNet)} $\to$ \\
+\textbf{Registro y visualización (waterfall + t--DM)} \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Pseudocódigo de la rama mm-wave (sin detector de objetos)}
+\begin{verbatim}
+for chunk in ventanas(archivo, chunk_ms, overlap_ms):
+  datos = preprocesar(chunk)
+  wf = waterfall(datos)
+  picos = detectar_picos_SNR(wf, umbral_robusto(MAD/IQR))
+  for pico in agrupar_picos(picos):
+    bbox_sint = construir_bbox_alrededor(pico)
+    recorte_tDM = sintetizar_recorte_tDM(datos, pico)  # opcional
+    puntaje = cls_model.predict({recorte_tDM, wf_alrededor(pico)})
+    if puntaje.clase == "FRB" y puntaje.conf > umbral:
+      registrar_candidato(...)
+\end{verbatim}
+
+\subsection*{Pérdidas y decisión (para referencia)}
+\noindent \textbf{Pérdida de detección (CenterNet):}
+\begin{equation}\label{eq:centernet_loss}
+\mathcal{L}_{\mathrm{det}} = \sum_{i,j} \mathrm{FL}\bigl(\hat{H}_{ij}, H_{ij}\bigr) + \lambda_{\mathrm{off}} \lVert \hat{\Delta}_{ij}-\Delta_{ij}\rVert_{1} + \lambda_{\mathrm{size}} \lVert \hat{S}_{ij}-S_{ij}\rVert_{1}.
+\end{equation}
+\noindent \textbf{Pérdida de clasificación (ResNet):}
+\begin{equation}\label{eq:cls_loss}
+\mathcal{L}_{\mathrm{cls}} = - \frac{1}{B}\sum_{b=1}^{B}\Bigl[y_b \log \hat{p}_b + (1-y_b)\log(1-\hat{p}_b)\Bigr].
+\end{equation}
+\noindent \textbf{Umbrales de decisión:}
+\begin{equation}\label{eq:thresholds}
+\hat{p}^{\mathrm{(det)}} \ge \tau_{\mathrm{det}},\qquad \hat{p}^{\mathrm{(cls)}} \ge \tau_{\mathrm{cls}},\qquad \mathrm{Score}(b) = (\hat{p}^{\mathrm{(det)}}_b)^{\lambda}(\hat{p}^{\mathrm{(cls)}}_b)^{1-\lambda}.
+\end{equation}
+
+\section{Aceleración y configuraciones}
+Uso de CPU/GPU, organización del código y parámetros clave de ejecución.
+
+\textbf{TODO}: Enlazar `src/config/` y `src/core/` (planificador, colas, lotes) y flags de ejecución.
+
+\section{Polarización}
+Manejo coherente de Stokes \(I,Q,U,V\) conforme a PSR/IEEE cuando corresponda.
+
+\textbf{TODO}: Indicar si tu dataset usa I únicamente o incluye Q/U/V y cómo se procesa.
+
+\section{Umbrales robustos}
+Estimadores robustos (MAD $\rightarrow \sigma=1{.}4826$, IQR/1{.}349) para umbrales en ramas basadas en S/N.
+
+\textbf{TODO}: Fijar umbrales por defecto y cómo se calibran (experimentos del Cap. 6).
+
+\section{Cambio de estrategia de detección según banda}
+\textbf{Pipeline estándar (bajas frecuencias).} 
+\begin{itemize}
+  \item Usa detector de objetos (\texttt{det\_model}) sobre imagen tiempo--DM.
+  \item Genera cajas de detección automáticamente y envía recortes al clasificador.
+\end{itemize}
+\textbf{Pipeline de alta frecuencia (mm-wave).}
+\begin{itemize}
+  \item Elimina el detector de objetos (no usa \texttt{det\_model}).
+  \item Emplea detección por picos de SNR directamente del \textit{waterfall}.
+  \item Genera cajas sintéticas centradas en picos SNR para la clasificación.
+\end{itemize}
+
+

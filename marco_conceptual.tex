@@ -1,5 +1,27 @@
-\secnumbersection{MARCO CONCEPTUAL}
+\secnumbersection{MARCO TEÓRICO}
 
-Se debe describir la base conceptual o fundamentos en los que se basa tu memoria, es decir, todos los conceptos técnicos, metodologías, herramientas, etc. que están involucradas en la solución propuesta. En el fondo esta parte permite precisar y delimitar el problema, estableciendo definiciones para unificar conceptos y lenguaje y fijar relaciones con otros trabajos o soluciones encontradas por otros al mismo problema evitando así plagios o repetir errores ya conocidos o abordados por otros.
+\section{FRBs y pulsos individuales: DM, dispersión, ancho y S/N}
+Las FRBs son pulsos de duración típica de milisegundos, caracterizados por su \textit{Medida de Dispersión} (DM), ancho intrínseco/observado y relación señal/ruido (S/N). La dispersión en el medio ionizado introduce un retardo en frecuencia que se aproxima por
+\[\Delta t\,\,\mathrm{[ms]} \approx 4.15\times10^3\,\mathrm{DM}\,\left(\nu_1^{-2}-\nu_2^{-2}\right),\]
+donde \(\nu\) se expresa en MHz. El ensanchamiento por dispersión y efectos instrumentales (\textit{smearing}) limita la sensibilidad si excede el ancho del pulso.
 
-En esta parte es importante relacionar estos conceptos con la memoria y es fundamental utilizar referencias bibliográficas (o de la web) recientes, por ejemplo \cite{gettelfinger2004will}.
+\section{Plano tiempo--DM y patrón ``bow-tie''}
+La búsqueda de pulsos individuales se realiza en el plano tiempo--DM, donde una ráfaga astrofísica genera un patrón en ``corbatín'' (\textit{bow-tie}). La apertura del patrón depende de la cobertura en frecuencia y de la DM del evento; el máximo S/N aparece cerca de la DM verdadera.
+
+\section{RFI: criterios de discriminación astrofísico vs terrestre}
+La RFI suele concentrarse en bandas estrechas, presenta DM cercana a cero y carece de la dispersión cromática propia de señales cósmicas. Criterios como consistencia en sub-bandas, simetría temporal, estabilidad de DM y persistencia espacial ayudan a discriminar eventos astrofísicos.
+
+\section{Dedispersión y waterfalls (sin y con dedispersión)}
+Los \textit{waterfalls} crudos muestran la dispersión en frecuencia; tras dedispersar a una DM candidata, un pulso real se alinea temporalmente a través de canales. La inspección conjunta tiempo--DM y \textit{waterfalls} dedispersados es clave para validar candidatos.
+
+\section{Particularidades a alta frecuencia (mm-wave)}
+A frecuencias milimétricas el retardo por dispersión es menor, atenuando el ``bow-tie'' y reduciendo la ganancia de S/N asociada a la dedispersión. Esto exige ampliar el rango y el paso de DM o estrategias de validación por sub-bandas y clasificación complementaria.
+
+\section{Telescopios y datos relevantes}
+Se consideran instrumentos y formatos representativos: FAST y Effelsberg (banda L), y ALMA en modo \textit{phased} para frecuencias milimétricas. Formatos habituales: PSRFITS/SEARCH y \texttt{FIL}, con metadatos esenciales como \texttt{TBIN}, \texttt{NCHAN}, ancho de banda, frecuencias y tiempos de inicio en MJD.
+
+\section{Convenciones de polarización (PSR/IEEE) y PSRFITS/PSRCHIVE}
+Se adopta la convención PSR/IEEE para Stokes \(I,Q,U,V\). La correcta interpretación y almacenamiento de polarización en PSRFITS y su tratamiento en PSRCHIVE son relevantes para análisis avanzados y mitigación de RFI.
+
+\section{Trazabilidad temporal}
+Se resguarda trazabilidad mediante sellos de tiempo absolutos (MJD topocéntrico) y consistencia con modelos temporales (p.ej., TEMPO2), asegurando coherencia entre bloques y reproductibilidad de ventanas temporales.

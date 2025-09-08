@@ -1,0 +1,30 @@
+\secnumbersection{EXTENSIÓN A FRECUENCIAS MILIMÉTRICAS (ALMA)}
+
+\section{Desafío físico}
+Atenuación del \textit{bow-tie} en mm-wave y reducción del retardo por dispersión.
+
+\section{Estrategia A: DM expandido}
+Ampliar rango y paso de DM para ``abrir'' el \textit{bow-tie} y recuperar sensibilidad.
+
+\textbf{TODO}: Especificar rango y step de DM propuestos para mm-wave y justificación.
+
+\section{Estrategia B: Clasificación a DM cercana a cero}
+Ejecutar clasificador a DM cercana a cero y validar con DM\(>0\) y consistencia por sub-banda/\textit{chunk}.
+
+\textbf{TODO}: Definir criterios de consistencia en sub-bandas y umbrales asociados.
+
+\section{Experimentos y casos límite}
+Resultados y análisis de falsos positivos a DM cercana a cero, incluyendo RFI.
+
+\section{Discusión}
+Cuándo falla el detector, cuándo acierta el clasificador y límites de la estrategia.
+
+\section{Rama alternativa basada en SNR}
+Detección por picos en Stokes I con umbrales robustos (MAD 1.4826, IQR/1.349), agrupamiento de picos y cajas sintéticas para el clasificador.
+
+\textbf{TODO}: Documentar cálculo de umbral robusto (MAD/IQR) y ventana de agrupamiento.
+
+\section{Viabilidad en ALMA phased}
+Fork del pipeline para validar DRAFTS en ALMA en tres modos: intensidad, polarización circular y polarización lineal. A partir de estos resultados, iterar en nuevos \textit{plots} y futuros entrenamientos. Resultados/viabilidad con magnetar PSR J1745−2900 y motivación para buscar transientes en Band 3.
+
+

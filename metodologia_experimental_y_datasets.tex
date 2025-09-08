@@ -1,0 +1,34 @@
+\secnumbersection{METODOLOGÍA EXPERIMENTAL Y DATASETS}
+
+\section{Datasets}
+Conjunto de datos: pulsar de prueba (p.ej., B0355+54), FRB 121102; rangos de DM, \texttt{TBIN}, \texttt{NCHAN} y preparación.
+
+\textbf{TODO}: Completar tabla con archivos, tamaños (GB), MJD, TBIN, NCHAN, BW.
+
+\section{Protocolo de experimentos}
+Semillas, ablations y barridos de parámetros; número de repeticiones y control de aleatoriedad.
+
+\textbf{TODO}: Especificar seeds fijas, número de corridas por configuración y parámetros barridos.
+
+\section{Métricas}
+Recall, precision, F1, S/N y latencia por archivo/bloque, además de FAR estimada.
+
+\textbf{TODO}: Definir cómo se calcula FAR/h y qué umbrales aplican por etapa.
+
+\section{Hardware y software}
+Descripción de GPU/CPU, versiones de software y mecanismos de reproducibilidad (conda/contenedores).
+
+\textbf{TODO}: Añadir `environment.yml`/Docker y versiones exactas (CUDA/cuDNN, PyTorch).
+
+\section{Inyecciones sintéticas}
+Inyección de pulsos sintéticos para curvas de eficiencia (recall vs S/N, ancho, DM).
+
+\textbf{TODO}: Especificar distribución de S/N, anchos, DM y cantidad de inyecciones por archivo.
+
+\section{FAIR y manifests}
+Buenas prácticas FAIR: DOIs, hashes de pesos, contenedores/environment y manifests de experimentos.
+
+\section{Análisis del trials factor}
+Estimación del \textit{trials factor} (DM\(\times\)tiempo) y su impacto en FAR por hora.
+
+
