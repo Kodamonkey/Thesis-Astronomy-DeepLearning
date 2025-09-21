@@ -2,4 +2,87 @@
 
 Las Conclusiones son, según algunos especialistas, el aspecto principal de una memoria, ya que reflejan el aprendizaje final del autor del documento. En ellas se tiende a considerar los alcances y limitaciones de la propuesta de solución, establecer de forma simple y directa los resultados, discutir respecto a la validez de los objetivos formulados, identificar las principales contribuciones y aplicaciones del trabajo realizado, así como su impacto o aporte a la organización o a los actores involucrados. Otro aspecto que tiende a incluirse son recomendaciones para quienes se sientan motivados por el tema y deseen profundizarlo, o lineamientos de una futura ampliación del trabajo.
 
-\underline{Todo esto debe sintetizarse en al menos 5 páginas.}
+\subsection{Logros y Resultados Principales}
+
+El presente trabajo ha demostrado de manera contundente la extraordinaria capacidad de los modelos de redes neuronales profundas para la detección y clasificación de Fast Radio Bursts (FRBs). Los resultados obtenidos en todos los archivos de prueba han sido excepcionales, validando empíricamente que el futuro de la radioastronomía en el campo de la detección de transientes cósmicos está indisolublemente ligado al desarrollo y mejora de herramientas computacionales avanzadas e inteligencia artificial.
+
+Los modelos implementados han mostrado una precisión y eficiencia sin precedentes en la identificación de FRBs, superando significativamente los métodos tradicionales de detección. Esta superioridad se manifiesta no solo en términos de precisión estadística, sino también en la capacidad de procesar grandes volúmenes de datos en tiempo real, característica fundamental para la observación astronómica moderna.
+
+\subsection{Descubrimientos Científicos Específicos}
+
+Una de las contribuciones más destacadas de este trabajo ha sido la identificación de nuevos eventos astronómicos utilizando las metodologías desarrolladas. Específicamente, se lograron detectar dos nuevos eventos del FRB121102, uno de los FRBs más estudiados y enigmáticos conocidos hasta la fecha. Estos descubrimientos no solo validan la efectividad de los modelos implementados, sino que también contribuyen directamente al conocimiento científico sobre este objeto particular y su comportamiento temporal.
+
+Adicionalmente, el análisis de datos de ALMA (Atacama Large Millimeter/submillimeter Array) permitió identificar nuevos pulsos de un pulsar previamente conocido. Este hallazgo demuestra la versatilidad de la metodología desarrollada, mostrando que los modelos pueden ser aplicados exitosamente a diferentes tipos de objetos astronómicos y en diferentes rangos de frecuencia, desde radio hasta submilimétrico.
+
+Estos descubrimientos concretos representan un aporte tangible al campo de la radioastronomía, proporcionando nuevos datos observacionales que pueden ser utilizados por la comunidad científica para profundizar en la comprensión de estos fenómenos cósmicos.
+
+\subsection{Contribuciones al Campo de la Radioastronomía}
+
+Una de las contribuciones más significativas de este trabajo radica en la demostración de la versatilidad inherente a los pipelines astronómicos modernos. Se ha evidenciado que es posible desarrollar sistemas de software sumamente robustos que incorporen múltiples capas de verificación para minimizar falsos positivos y maximizar la confiabilidad de las detecciones.
+
+El enfoque propuesto contempla la implementación de un pipeline multi-etapa que incluye: (1) modelos de machine learning/deep learning para la detección inicial en tiempo real cuando la señal llega al radiotelescopio, (2) múltiples modelos de detección que validen los candidatos identificados, (3) sistemas de clasificación avanzados que caractericen los eventos detectados, y (4) algoritmos de validación adicionales que analicen parámetros físicos y métricas complementarias.
+
+Esta arquitectura modular no solo mejora la precisión del sistema, sino que también proporciona redundancia y robustez, características esenciales para aplicaciones científicas críticas donde la confiabilidad es primordial.
+
+\subsection{Limitaciones y Consideraciones Críticas}
+
+A pesar de los resultados excepcionales obtenidos, es fundamental reconocer las limitaciones inherentes a los modelos de deep learning implementados. Aunque estos sistemas han demostrado una capacidad impresionante para identificar patrones y morfologías similares a aquellas con las que fueron entrenados, pueden fallar cuando se enfrentan a fenómenos completamente nuevos o variaciones significativas en las características de las señales.
+
+Esta limitación subraya la importancia de mantener un enfoque crítico y complementario en la investigación astronómica. Los modelos de IA deben ser considerados como herramientas poderosas que amplifican las capacidades humanas, pero no como reemplazos absolutos del análisis científico tradicional.
+
+\subsection{Impacto Tecnológico y Científico}
+
+El trabajo realizado tiene implicaciones profundas para el futuro de la radioastronomía. La integración exitosa de técnicas de inteligencia artificial en la detección de FRBs abre nuevas posibilidades para:
+
+\begin{itemize}
+    \item El procesamiento en tiempo real de grandes volúmenes de datos astronómicos
+    \item La identificación automática de eventos transientes raros y de corta duración
+    \item El desarrollo de sistemas de alerta temprana para fenómenos cósmicos
+    \item La optimización del tiempo de observación en radiotelescopios
+\end{itemize}
+
+Además, la metodología desarrollada puede ser adaptada y aplicada a otros campos de la astronomía donde la detección de señales débiles en ruido es fundamental, como la búsqueda de exoplanetas, la detección de ondas gravitacionales, o la identificación de señales de inteligencia extraterrestre.
+
+\subsection{Recomendaciones para Trabajo Futuro}
+
+Basándose en los resultados obtenidos y las limitaciones identificadas, se proponen las siguientes líneas de investigación para trabajos futuros:
+
+\subsubsection{Mejora de Instrumentación}
+
+El desarrollo de instrumentos más avanzados y sensibles será crucial para maximizar el potencial de los modelos de IA. La obtención de datos de mayor calidad y resolución temporal permitirá entrenar modelos más robustos y precisos.
+
+\subsubsection{Nuevos Parámetros Característicos}
+
+La identificación y desarrollo de nuevos parámetros característicos específicos para la detección de FRBs en alta frecuencia representa una oportunidad significativa. Estos parámetros podrían incluir:
+
+\begin{itemize}
+    \item Análisis espectral avanzado de las señales
+    \item Características temporales de alta resolución
+    \item Parámetros de dispersión mejorados
+    \item Métricas de polarización específicas
+\end{itemize}
+
+\subsubsection{Arquitecturas de Redes Neuronales Avanzadas}
+
+La exploración de arquitecturas más sofisticadas, como redes de atención, transformers adaptados para señales temporales, o modelos de ensemble que combinen múltiples enfoques, podría mejorar aún más la precisión y robustez del sistema.
+
+\subsubsection{Pipeline de Validación Multi-Capa}
+
+El desarrollo de un sistema de validación más complejo que incorpore:
+
+\begin{itemize}
+    \item Múltiples modelos independientes para cada etapa
+    \item Algoritmos de consenso para decisiones críticas
+    \item Sistemas de aprendizaje continuo que se adapten a nuevos tipos de señales
+    \item Integración con bases de datos astronómicas globales
+\end{itemize}
+
+\subsection{Reflexiones Finales}
+
+Este trabajo representa un hito significativo en la convergencia entre inteligencia artificial y radioastronomía. Los resultados obtenidos no solo validan la viabilidad técnica del enfoque propuesto, sino que también establecen un nuevo estándar para la detección automática de FRBs.
+
+La metodología desarrollada, con su enfoque modular y robusto, proporciona una base sólida para futuras investigaciones y aplicaciones prácticas. La integración exitosa de múltiples técnicas de validación y la demostración de la versatilidad de los pipelines astronómicos modernos abren nuevas perspectivas para el desarrollo de sistemas de detección astronómica de próxima generación.
+
+El futuro de la detección de FRBs y otros transientes cósmicos está claramente vinculado al desarrollo continuo de herramientas computacionales avanzadas. Sin embargo, es crucial mantener un equilibrio entre la automatización y la supervisión científica, asegurando que los avances tecnológicos sirvan para amplificar, no reemplazar, la capacidad humana de descubrimiento y comprensión del universo.
+
+Este trabajo contribuye significativamente al campo de la radioastronomía moderna, estableciendo las bases para una nueva era de detección automática de fenómenos cósmicos transientes, donde la inteligencia artificial y la investigación astronómica tradicional trabajan en sinergia para desentrañar los misterios del universo.

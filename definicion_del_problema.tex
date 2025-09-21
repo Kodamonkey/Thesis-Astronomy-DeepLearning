@@ -28,69 +28,36 @@
 % \subsubsection{OTRA SUBSUBSECCIÓN DE PRUEBA}
 % 
 % Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.
+\subsection{Descripción}
 
-Los \textit{Fast Radio Bursts} (FRBs) son fenómenos de milisegundos de origen extragaláctico. Su estudio se ha consolidado como una línea de trabajo en astronomía de radio y ciencia de datos, con impacto en instrumentación, procesamiento de señales y aprendizaje automático. Este capítulo formula el \textbf{problema} que aborda la memoria: la ausencia de un \textit{pipeline} operativo, reproducible y portable que permita \textbf{detectar y clasificar FRBs en tiempo (casi) real} y que, además, sea \textbf{extensible a regímenes de alta frecuencia} (mm-wave) sin reentrenar modelos. La investigación se sitúa en la intersección de la Informática (ingeniería de software y ML aplicado) y la radioastronomía, utilizando como base el marco conceptual y el código no finalizado de \textbf{DRAFTS}\footnote{\emph{Deep-learning Real-time pAstro nomy FRB TranSients} (DRAFTS). Se usa como punto de partida por disponer de modelos de detección y clasificación y de utilidades de procesamiento, pero su código requiere consolidación para uso productivo.}, sobre el cual se propone construir un \textit{pipeline} robusto.
+Los \textit{Fast Radio Bursts} (FRBs) son  eventos transitorios  de milisegundos de origen extragaláctico. Su estudio se ha consolidado como una línea de investigación en radioastronomia y ciencia de datos, en la cual convergen desarrollos de instrumentación, procesamiento de señales y aprendizaje automático. En la actualidad, se han desarrollado métodos y modelos capaces de detectar y clasificar FRBs en distintos contextos, junto con marcos de trabajo que incorporan técnicas de aprendizaje profundo. Sin embargo, estas aproximaciones suelen estar limitadas a implementaciones específicas, de difícil reproducción y con escasa portabilidad. En particular, no se dispone de un flujo de procesamiento consolidado que pueda adaptarse a distintos entornos y extenderse a regímenes de alta frecuencia (mm-wave) sin necesidad de reentrenar los modelos. En este capítulo se describe los detalles de problema y se expone el enfoque que guiará el desarrollo de la memoria.
 
-\medskip
-Hoy, la búsqueda de FRBs en bandas decimétricas se apoya en flujos clásicos (limpieza RFI, dedispersión en rejillas de DM, filtrado por \emph{matched filtering}, generación y depuración de candidatos). La depuración sigue demandando curaduría manual y scripts ad hoc por equipo. En \textbf{alta frecuencia} (30--100,GHz; modo \emph{phased} en arreglos como ALMA\footnote{\emph{Phased array} permite formar un haz coherente y registrar series temporales de alta resolución para experimentos de transientes/pulsos.}), la ventana científica es prometedora pero \textbf{no existen \textit{pipelines} estandarizados y de propósito general} para transientes de milisegundos: los datos son distintos (menor retardo dispersivo observable, otras sistemáticas) y los desarrollos actuales son prototipos.
 
-\medskip
+%Este capítulo formula el \textbf{problema} que aborda la memoria: la ausencia de un \textit{pipeline} operativo, reproducible y portable que permita \textbf{detectar y clasificar FRBs en tiempo (casi) real} y que, además, sea \textbf{extensible a regímenes de alta frecuencia} (mm-wave) sin reentrenar modelos. La investigación se sitúa en la intersección de la Informática (ingeniería de software y ML aplicado) y la radioastronomía, utilizando como base el marco conceptual y el código no finalizado de \textbf{DRAFTS}\footnote{\emph{Deep-learning Real-time pAstro nomy FRB TranSients} (DRAFTS). Se usa como punto de partida por disponer de modelos de detección y clasificación y de utilidades de procesamiento, pero su código requiere consolidación para uso productivo.}, sobre el cual se propone construir un \textit{pipeline} robusto.
 
-El problema afecta a: (i) astrónomos/as de radio que planifican, ejecutan y validan búsquedas; (ii) ingenieros/as de datos que mantienen \textit{pipelines} y orquestación; (iii) observatorios con backends de alta tasa (p.,ej., FAST, ASKAP, MeerKAT, GBT/VLA, ALMA en \emph{phased}). El número de grupos trabajando activamente en FRBs y transientes de milisegundo es amplio y distribuido en universidades y centros; muchos de ellos replican esfuerzos de ingeniería similares para cubrir sus necesidades locales. Un \textit{pipeline} generalista y portable reduce esa duplicación y mejora el retorno científico de tiempo de telescopio.
 
-\medskip
-
-Algunas de las dificultades observadas son:
-
-\begin{enumerate}
-\item \textbf{Tiempo de ejecución y fricción operativa:} archivos grandes, dedispersión en rejillas amplias y visualización masiva de candidatos encarecen I/O y memoria; la latencia dificulta alertas y seguimiento.
-\item \textbf{Altas tasas de falsos positivos:} RFI y artefactos instrumentales exigen segundas cribas y validación experta.
-\item \textbf{Brecha en alta frecuencia:} a mm-wave el retardo $\Delta t\propto \mathrm{DM},\nu^{-2}$ es menor; patrones diagnósticos (\emph{bow-tie} en tiempo--DM) se atenúan y los productos clásicos pierden poder discriminante. Falta un flujo adaptado a estas condiciones.
-\item \textbf{Modelos sin producto:} existen trabajos con redes neuronales (detección y clasificación), pero \textbf{no} siempre hay \textit{pipelines} \emph{end-to-end} maduros y de propósito general que integren modelos, ingeniería de datos, métricas y reportabilidad.
-\end{enumerate}
+%Esta limitación constituye el problema central de la memoria, que se aborda desde la intersección de la Informática —en particular la ingeniería de software y el aprendizaje automático— y la radioastronomía. Como punto de partida se emplea el marco conceptual y el código preliminar de DRAFTS\footnote{\emph{Deep-learning Real-time Astronomy FRB TranSients} (DRAFTS). Se utiliza como base inicial por contar con modelos de detección y clasificación y con utilidades de procesamiento, aunque su código requiere consolidación para uso productivo.}, sobre los cuales se plantea el diseño e implementación de un flujo de procesamiento más robusto, reproducible y portable.%
 
 \medskip
-Sin una solución, se mantiene la latencia (pérdida de oportunidades de \emph{follow-up}), se perpetúan sesgos por curaduría manual, se multiplica el costo de mantenimiento de soluciones ad hoc y se desaprovecha la ventana en mm-wave (donde podrían aparecer firmas diferentes a las conocidas). También se diluye la trazabilidad/reproducibilidad, limitando comparaciones entre proyectos.
+
+Actualmente, la búsqueda de FRBs en radioastronomía se desarrolla principalmente en dos regímenes espectrales con características y desafíos distintos. En las frecuencias tradicionalmente utilizadas (bandas decimétricas, aproximadamente 300 MHz - 3 GHz), la detección se fundamenta en flujos de procesamiento clásicos que incluyen limpieza de interferencia de radiofrecuencia (RFI), dedispersión mediante rejillas de medida de dispersión (DM), filtrado por \emph{matched filtering}, y la posterior generación y depuración de candidatos. A pesar de la madurez relativa de estos métodos, la etapa de depuración continúa demandando curaduría manual extensiva y el desarrollo de scripts \emph{ad hoc} específicos para cada equipo de investigación.
+
+
+En contraste, el régimen de alta frecuencia (30--100 GHz, ondas milimétricas), particularmente en configuraciones de arreglo en fase (\emph{phased array}) como las implementadas en ALMA\footnote{La configuración de \emph{phased array} permite la formación de un haz coherente y el registro de series temporales de alta resolución temporal, elementos esenciales para experimentos de detección de transientes y pulsos.}, presenta una ventana científica prometedora pero carece de \textit{pipelines} estandarizados. En estas frecuencias, el retardo dispersivo $\Delta t\propto \mathrm{DM},\nu^{-2}$ es menor, los patrones diagnósticos (\emph{bow-tie} en tiempo--DM) se atenúan, y los desarrollos actuales permanecen en estado de prototipo.
+
+%Hoy, la búsqueda de FRBs en bandas decimétricas se apoya en flujos clásicos (limpieza RFI, dedispersión en rejillas de DM, filtrado por \emph{matched filtering}, generación y depuración de candidatos). La depuración sigue demandando curaduría manual y scripts ad hoc por equipo. En \textbf{alta frecuencia} (30--100,GHz; modo \emph{phased} en arreglos como ALMA\footnote{\emph{Phased array} permite formar un haz coherente y registrar series temporales de alta resolución para experimentos de transientes/pulsos.}), la ventana científica es prometedora pero \textbf{no existen \textit{pipelines} estandarizados y de propósito general} para transientes de milisegundos: los datos son distintos (menor retardo dispersivo observable, otras sistemáticas) y los desarrollos actuales son prototipos.%
 
 \medskip
-Hoy por hoy existen herramientas clásicas (PRESTO/Heimdall) y marcos específicos de proyectos que han sido eficaces en L/S-band, pero su adopción como \textbf{producto} general es limitada, pues no se consideran escenarios de alta frecuencia. En DL, \textbf{DRAFTS} sugiere una vía: detección en mapas tiempo--DM (estimación de $(t_{arr},,\mathrm{DM})$) + \emph{patch} tiempo--frecuencia para clasificación binaria. La brecha es llevar ese enfoque a un \textit{pipeline} reproducible, con ingeniería de software, monitoreo, métricas y \textbf{adaptación a alta frecuencia} sin reentrenar modelos.
 
-\medskip
-Entonces, luego del contexto anterior, presentamos la formulación del problema; dado un flujo de datos de radioastronomía (FITS/PSRFITS u otros formatos) y dos modelos preentrenados (detección y clasificación), se requiere construir un \textbf{pipeline operativo, reproducible y portable} que: (i) procese en lotes y en línea con control de recursos, (ii) reduzca falsos positivos con una segunda criba basada en DL, (iii) produzca salidas auditables (catálogo de candidatos, recortes, figuras, métricas), y (iv) \textbf{funcione en alta frecuencia} parametrizando adecuadamente DM-grids, escalas temporales y productos diagnósticos (incluida polarización cuando esté disponible). Todo ello \textbf{sin reentrenar} los modelos base.
+En vista de estos desafíos técnicos diferenciados, se han desarrollado herramientas clásicas como PRESTO y Heimdall, eficaces en bandas L y S pero limitadas para escenarios de alta frecuencia. En aprendizaje profundo, marcos como \textbf{DRAFTS} han explorado aproximaciones prometedoras mediante detección en mapas tiempo--DM y clasificación binaria sobre \emph{patches} tiempo--frecuencia. Sin embargo, la transición hacia un \textit{pipeline} operativo que incorpore principios sólidos de ingeniería de software y sea extensible entre regímenes frecuenciales permanece como una brecha crítica.
 
-\medskip
-La propuesta ataca un cuello de botella real (latencia + robustez) y agrega valor transversal (portabilidad y estandarización). El impacto esperado es doble: (i) \emph{operativo}, al disminuir fricción y tiempos de análisis; (ii) \emph{científico}, al habilitar búsquedas consistentes en mm-wave y facilitar comparabilidad entre campañas.
-
-\medskip
-\noindent\textbf{Objetivos}
-\begin{itemize}
-\item \textbf{General:} Desarrollar un \textbf{pipeline astronómico} para \textbf{detección y clasificación de FRBs} basado en dos CNN preentrenadas, \textbf{extendido a alta frecuencia} sin reentrenamiento.
-\item \textbf{Específicos:}
-\begin{enumerate}
-\item Integrar los modelos de \emph{detección} y \emph{clasificación} y construir alrededor un flujo robusto: ingesta $\to$ preprocesamiento $\to$ inferencia $\to$ posprocesamiento $\to$ reporte.
-\item Aplicar ingeniería de software y algoritmos: manejo de I/O, \emph{chunking/overlap}, vectorización/aceleración, control de memoria y registro de trazas.
-\item Adaptar el flujo a \textbf{alta frecuencia} por parametrización (DM-grid, ventanas temporales, productos en Stokes/polarización si existen), evitando reentrenamiento.
-\item Validar sobre datos previamente analizados, \textbf{igualando o superando} el recuento de eventos reportados y midiendo latencia, \emph{precision} y \emph{recall}.
-\item Realizar análisis exploratorios para identificar \textbf{gráficos y productos característicos} en mm-wave (p.,ej., diagramas tiempo--frecuencia y diagnósticos de polarización).
-\end{enumerate}
-\end{itemize}
-
-\medskip
-En esta memoria, no se contempla reentrenar modelos ni desarrollar \emph{backends} instrumentales; el foco es \textbf{inferencias y orquestación} a partir de modelos existentes y datos crudos/reducidos.
-
-\medskip
-\noindent\textbf{Resultados esperados (medibles).} (i) \emph{Pipeline} E2E ejecutable por línea de comandos y/o servicio, con documentación y pruebas; (ii) reporte comparativo de desempeño (\emph{recall}, \emph{precision}, \emph{throughput}, latencia por GB/archivo); (iii) conjunto de figuras/\emph{notebooks} ilustrativos para régimen de alta frecuencia.
-
-\begin{figure}[h]
-\centering
-% \includegraphics[width=0.9\textwidth]{workflow_propuesto.pdf}
-\caption{\textbf{Sugerencia de figura:} Flujo actual (dedispersión + candidatos + curaduría) versus flujo propuesto (detección DL + clasificación DL + reporte). Señalar puntos de latencia y reducción de falsos positivos.}
-\end{figure}
+Los desafíos operativos comunes a ambos regímenes incluyen: fricción computacional (archivos grandes y procesamiento intensivo que genera latencia crítica para alertas de seguimiento), altas tasas de falsos positivos (RFI y artefactos instrumentales que exigen validación manual), y la ausencia de pipelines end-to-end que integren modelos de aprendizaje automático con ingeniería de datos, métricas y reportabilidad robustas.
 
 \begin{table}[h]
 \centering
-\caption{\textbf{Sugerencia de tabla}: diferencias prácticas entre bandas decimétricas y mm-wave relevantes para el diseño del pipeline.}
-\begin{tabular}{p{0.30\textwidth} p{0.30\textwidth} p{0.30\textwidth}}
+\caption{\textbf{Comparación de características técnicas entre regímenes espectrales relevantes para el diseño del pipeline.}}
+\vspace{0.5em}
+\begin{tabular}{|l|l|l|}
 \toprule
 \textbf{Aspecto} & \textbf{0.3--3\,GHz} & \textbf{30--100\,GHz} \\
 \midrule
@@ -99,8 +66,59 @@ RFI/sistemáticas & RFI ancha banda & Atmósfera, estabilidad de fase, distinta 
 Productos útiles & Waterfalls, tiempo--DM & Tiempo--frecuencia, polarización/diagnósticos alternativos \\
 Disponibilidad de software & Pipelines consolidados & Prototipos, sin estándar general \\
 \bottomrule
+\vspace{0.2em}
 \end{tabular}
+\raggedright
+\small{\textit{Nota: RFI = Radio Frequency Interference (Interferencia de Radiofrecuencia); DM = Dispersion Measure (Medida de Dispersión).}}
 \end{table}
 
 \medskip
-\noindent\textbf{Nota.} Este capítulo define el \emph{problema} (no la solución detallada). La solución propuesta se desarrolla en capítulos posteriores (diseño del \emph{pipeline}, validación y resultados), siguiendo la lógica de una memoria profesional.\footnote{Las referencias completas a DRAFTS, herramientas clásicas y trabajos en alta frecuencia se incorporarán en el capítulo de marco conceptual y bibliografía.}
+%Hoy por hoy existen herramientas clásicas (PRESTO/Heimdall) y marcos específicos de proyectos que han sido eficaces en L/S-band, pero su adopción como \textbf{producto} general es limitada, pues no se consideran escenarios de alta frecuencia. En DL, \textbf{DRAFTS} sugiere una vía: detección en mapas tiempo--DM (estimación de $(t_{arr},,\mathrm{DM})$) + \emph{patch} tiempo--frecuencia para clasificación binaria. La brecha es llevar ese enfoque a un \textit{pipeline} reproducible, con ingeniería de software, monitoreo, métricas y \textbf{adaptación a alta frecuencia} sin reentrenar modelos.
+
+
+
+\medskip
+%Entonces, luego del contexto anterior, presentamos la formulación del problema; dado un flujo de datos de radioastronomía (FITS/PSRFITS u otros formatos) y dos modelos preentrenados (detección y clasificación), se requiere construir un \textbf{pipeline operativo, reproducible y portable} que: (i) procese en lotes y en línea con control de recursos, (ii) reduzca falsos positivos con una segunda criba basada en DL, (iii) produzca salidas auditables (catálogo de candidatos, recortes, figuras, métricas), y (iv) \textbf{funcione en alta frecuencia} parametrizando adecuadamente DM-grids, escalas temporales y productos diagnósticos (incluida polarización cuando esté disponible). Todo ello \textbf{sin reentrenar} los modelos base.%
+
+Considerando este contexto, el presente trabajo aborda la siguiente formulación del problema: dado un flujo de datos de radioastronomía (FITS/PSRFITS u otros formatos) y dos modelos preentrenados (detección y clasificación), se requiere construir un **pipeline operativo, reproducible y portable** que: (i) procese datos en lotes y en línea con control eficiente de recursos, (ii) reduzca falsos positivos mediante una segunda criba basada en aprendizaje profundo, (iii) genere salidas completamente auditables (catálogo de candidatos, recortes, figuras diagnósticas y métricas de rendimiento), y (iv) **sea extensible a regímenes de alta frecuencia** mediante parametrización adecuada de rejillas DM, escalas temporales y productos diagnósticos (incluida polarización cuando esté disponible). Todo ello **sin requerir 
+
+\medskip
+%La propuesta ataca un cuello de botella real (latencia + robustez) y agrega valor transversal (portabilidad y estandarización). El impacto esperado es doble: (i) \emph{operativo}, al disminuir fricción y tiempos de análisis; (ii) \emph{científico}, al habilitar búsquedas consistentes en mm-wave y facilitar comparabilidad entre campañas.%
+
+Esta propuesta aborda limitaciones críticas en el área: la alta latencia computacional que impide alertas oportunas de seguimiento, y la falta de robustez operativa que requiere intervención manual extensiva para validar candidatos. La solución aporta valor transversal mediante portabilidad y estandarización de procesos. El impacto esperado es doble: (i) **operativo**, al reducir significativamente los tiempos de procesamiento y automatizar la validación de candidatos; y (ii) **científico**, al habilitar búsquedas sistemáticas y consistentes en el régimen de ondas milimétricas y facilitar la comparabilidad entre diferentes campañas observacionales.
+
+\medskip
+
+\subsection{Objetivos y Resultados Esperados}
+
+\textbf{Objetivos}
+\begin{itemize}
+\item \textbf{General:} Desarrollar un \textbf{pipeline astronómico operativo} para \textbf{detección y clasificación de FRBs} basado en dos CNN preentrenadas, \textbf{extensible a regímenes de alta frecuencia} sin reentrenamiento.
+\item \textbf{Específicos:}
+\begin{enumerate}
+\item Integrar los modelos de \emph{detección} y \emph{clasificación} en un flujo robusto y reproducible: ingesta $\to$ preprocesamiento $\to$ inferencia $\to$ posprocesamiento $\to$ reporte auditable.
+\item Implementar optimizaciones de rendimiento: procesamiento eficiente de archivos grandes, gestión de memoria, aceleración computacional y registro completo de operaciones.
+\item Parametrizar el flujo para \textbf{adaptación a alta frecuencia} (rejillas DM, ventanas temporales, productos Stokes/polarización) \textbf{sin reentrenamiento} de modelos.
+\item Validar el sistema sobre datos previamente analizados, \textbf{igualando o superando} recuentos reportados y caracterizando latencia, \emph{precision} y \emph{recall}.
+\item Implementar productos diagnósticos específicos para ondas milimétricas y realizar análisis exploratorios para caracterizar las propiedades distintivas de FRBs en alta frecuencia.
+\end{enumerate}
+\end{itemize}
+
+\medskip
+En esta memoria, no se contempla reentrenar modelos ni desarrollar \emph{backends} instrumentales; el foco es \textbf{inferencias y orquestación} a partir de modelos existentes y datos crudos/reducidos.
+
+\medskip
+\noindent\textbf{Resultados esperados}
+\begin{itemize}
+\item \emph{Pipeline} end-to-end ejecutable por línea de comandos y/o servicio, con documentación completa y suite de pruebas automatizadas.
+\item Reporte comparativo de desempeño que incluya métricas de \emph{recall}, \emph{precision}, \emph{throughput} y latencia por GB/archivo procesado.
+\item Conjunto de figuras y \emph{notebooks} ilustrativos que demuestren la aplicación del pipeline en el régimen de ondas milimétricas.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=0.9\textwidth]{workflow_propuesto.pdf}
+\caption{\textbf{Sugerencia de figura:} Flujo actual (dedispersión + candidatos + curaduría) versus flujo propuesto (detección DL + clasificación DL + reporte). Señalar puntos de latencia y reducción de falsos positivos.}
+\end{figure}
+
+\newpage

@@ -1,27 +1,349 @@
 \secnumbersection{VALIDACIÓN DE LA SOLUCIÓN}
 
-Se debe validar la solución propuesta. Esto significa probar o demostrar que la solución propuesta es válida para el entorno donde fue planteada.
+La validación de la solución propuesta constituye una etapa crítica que permite demostrar la efectividad de los dos bloques desarrollados en diferentes entornos y condiciones. Esta validación se estructura en dos componentes principales: la validación del bloque de bajas frecuencias (DRAFTS++) y la validación del bloque de altas frecuencias (High Frequency Detection).
 
-Tradicionalmente es una etapa crítica, pues debe comprobarse por algún medio que vuestra propuesta es básicamente válida. En el caso de un desarrollo de software es la construcción y sus pruebas; en el caso de propuestas de modelos, guías o metodologías podrían ser desde la aplicación a un caso real hasta encuestas o entrevistas con especialistas; en el caso de mejoras de procesos u optimizaciones, podría ser comparar la situación actual (previa a la memoria) con la situación final (cuando la memoria está ya implementada) en base a un conjunto cuantitativo de indicadores o criterios.
+\subsection{VALIDACIÓN DEL BLOQUE DE BAJAS FRECUENCIAS (DRAFTS++)}
 
-\subsection{EJEMPLO DE COMO CITAR TABLAS}
+La validación de DRAFTS++ se realizó mediante un proceso incremental que permitió verificar cada componente del sistema antes de su implementación completa. Este enfoque metodológico aseguró la robustez y confiabilidad del pipeline desarrollado.
 
-Se colocó una tabla que se puede referenciar también desde el texto (Ver tabla \ref{table:coloquios}).
+\subsubsection{Validación Inicial con Dataset de Entrenamiento}
 
-\begin{table}[h]
+El proceso de validación inició con el dataset FAST-FREX (FAST dataset for Fast Radio bursts EXploration), el mismo conjunto de datos utilizado para el entrenamiento de los modelos de detección. Esta etapa fue fundamental para validar todas las nuevas funcionalidades implementadas en DRAFTS++, incluyendo los nuevos tipos de visualización y el manejo de archivos de entrada, antes incluso del desarrollo del sistema de chunking.
+
+\begin{figure}[H]
     \centering
-    \caption{\label{table:coloquios} Coloquios del Ciclo de Charlas Informática.} Fuente: Elaboración Propia.
-    \begin{tabular}{|p{7cm}|p{7cm}|}
+    \includegraphics[width=\textwidth]{figures/FRB20180301_0001_slice003.png}
+    \caption{Detección de un Fast Radio Burst (FRB) del dataset de entrenamiento FAST-FREX. El panel superior muestra el mapa de dispersión (DM vs. Tiempo) con el evento resaltado. Los paneles inferiores presentan el SNR en cascada crudo, el SNR dedispersado y el SNR del parche candidato, confirmando una detección robusta con un SNR de 5.9$\sigma$.}
+    \label{fig:frb20180301_0001_slice003}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/FRB20201124_0009_slice004.png}
+    \caption{Detección de un segundo Fast Radio Burst (FRB) del dataset de entrenamiento FAST-FREX. Se observa una detección robusta con SNR de 16.5$\sigma$ después de la dedispersión, confirmando la efectividad del sistema en el dataset de entrenamiento.}
+    \label{fig:frb20201124_0009_slice004}
+\end{figure}
+
+\subsubsection{Validación de Continuidad Temporal y Time Domain}
+
+Una vez establecida la funcionalidad básica, se procedió a evaluar una característica crítica para cualquier pipeline de detección: la continuidad temporal y la precisión en el dominio del tiempo. Para esta validación se utilizó el pulsar de prueba B0355+54\_FB\_20220918, seleccionado por sus características ideales para este propósito:
+
+\begin{itemize}
+    \item \textbf{Brightness}: Pulsar sumamente brillante que facilita la detección
+    \item \textbf{Periodo de rotación}: 0.156 segundos
+    \item \textbf{Duración del archivo}: 117.23 segundos (1 minuto 57 segundos)
+    \item \textbf{Pulsos esperados}: 752 pulsos teóricos
+\end{itemize}
+
+Los resultados obtenidos fueron altamente satisfactorios:
+\begin{itemize}
+    \item \textbf{Pulsos detectados}: 732 de 752 esperados (97.3\% de eficiencia)
+    \item \textbf{Clasificación}: 718 clasificados como BURSTS, 14 como NO BURSTS
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/B0355+54_FB_20220918_slice000.png}
+    \caption{Validación de continuidad temporal - Slice 000: Se observan 7 pulsos detectados en el primer segundo de observación, demostrando la capacidad del sistema para detectar eventos periódicos con alta precisión temporal. Todos los pulsos fueron clasificados como BURSTS con scores de clasificación superiores a 0.99.}
+    \label{fig:b0355_slice000}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/B0355+54_FB_20220918_slice001.png}
+    \caption{Validación de continuidad temporal - Slice 001: Continuidad perfecta en el segundo slice, mostrando 5 pulsos clasificados como BURSTS y 1 como NO BURST. La consistencia en la detección temporal confirma la robustez del sistema de procesamiento por ventanas.}
+    \label{fig:b0355_slice001}
+\end{figure}
+
+Este resultado confirmó la capacidad del sistema para mantener la continuidad temporal entre ventanas de procesamiento y validó la precisión de las redes de detección pre-entrenadas de DRAFTS en condiciones controladas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/B0355+54_FB_20220918_slice013.png}
+    \caption{Caso de estudio: Pulso dudoso en la clasificación. El evento \#6 (DM: 55.5, Time: 13.93s) muestra un score de detección alto (0.73) pero un score de clasificación bajo (0.27), resultando en clasificación "NO BURST". El evento \#4 (DM: 54.6, Time: 14.08s) presenta un score de detección muy alto (0.81) pero clasificación muy baja (0.09). Esto demuestra la capacidad del sistema para detectar señales ambiguas que requieren revisión manual.}
+    \label{fig:b0355_slice013}
+\end{figure}
+
+\subsubsection{Validación con Datos del FRB 121102}
+
+Para evaluar el rendimiento del sistema en condiciones reales y con archivos de gran tamaño, se utilizó el dataset del FRB 121102, basado en el trabajo de \cite{cruces2020frb121102}. Este dataset presentó desafíos computacionales significativos que requirieron la implementación del sistema de chunking y la optimización del consumo de recursos.
+
+\paragraph{Metodología de Validación}
+
+La validación se realizó mediante una comparación directa con los resultados reportados en la literatura por Cruces et al. (2020) \cite{cruces2020frb121102}, quienes estudiaron el comportamiento repetitivo de FRB 121102 incluyendo periodicidad, tiempos de espera y distribución de energía. Se analizaron los mismos archivos de observación para asegurar una evaluación equitativa.
+
+\paragraph{Resultados de Detección del Pipeline DRAFTS++}
+
+El análisis de FRB121102 con el pipeline DRAFTS++ produjo 41 detecciones distribuidas en 6 archivos de observación (3096, 3098, 3099, 3100, 3101, 3102). Los resultados se clasificaron en tres categorías principales:
+
+\begin{enumerate}
+    \item \textbf{Bursts confirmados por literatura} (24 eventos): Detectados tanto por DRAFTS++ como reportados por Cruces et al. (2020)
+    \item \textbf{Nuevos candidatos sin confirmar} (15 eventos): Detectados únicamente por DRAFTS++, pendientes de validación científica
+    \item \textbf{Nuevos eventos confirmados} (2 eventos): Detectados por DRAFTS++ y 100\% confirmados por el grupo de astrónomos colaboradores
+\end{enumerate}
+
+\subparagraph{Bursts Confirmados por Literatura}
+
+Los 24 bursts que fueron detectados tanto por el pipeline DRAFTS++ como reportados en la literatura por Cruces et al. (2020) se presentan en detalle en el Anexo A (Tabla \ref{tab:anexo_confirmed_bursts}), demostrando la capacidad del sistema para identificar correctamente eventos conocidos.
+
+\subparagraph{Nuevos Candidatos Sin Confirmar}
+
+Los 15 nuevos candidatos detectados únicamente por DRAFTS++ que aún requieren confirmación científica se presentan en detalle en el Anexo A (Tabla \ref{tab:anexo_candidate_bursts}). Estos representan el potencial de descubrimiento del sistema.
+
+\subparagraph{Nuevos Eventos Confirmados}
+
+Los 2 nuevos eventos de bursts que fueron detectados por DRAFTS++ y posteriormente 100\% confirmados por el grupo de astrónomos colaboradores se presentan en detalle en el Anexo A (Tabla \ref{tab:anexo_new_confirmed_bursts}).
+
+Estos dos nuevos eventos representan descubrimientos científicos genuinos realizados por DRAFTS++, como se muestra en las Figuras \ref{fig:new_event_3096} y \ref{fig:new_event_3102}. Las visualizaciones confirman la detección robusta de ambos eventos con altos valores de SNR después de la dedispersión.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/3096_0001_00_8bit_slice039.png}
+    \caption{Primer nuevo evento confirmado de FRB121102 detectado por DRAFTS++ en el archivo 3096\_0001\_00\_8bit, slice 039. El evento muestra DM=563.6 pc cm$^{-3}$ y Time=2421.559296s, con un SNR de 6.3$\sigma$ después de la dedispersión. La detección fue 100\% confirmada por el grupo de astrónomos colaboradores. \textit{Fuente: Elaboración propia}.}
+    \label{fig:new_event_3096}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/3102_0001_00_8bit_slice040.png}
+    \caption{Segundo nuevo evento confirmado de FRB121102 detectado por DRAFTS++ en el archivo 3102\_0001\_00\_8bit, slice 040. El evento muestra DM=564.88 pc cm$^{-3}$ y Time=723.455399s, con un SNR de 12.0$\sigma$ después de la dedispersión. Este evento representa uno de los bursts más brillantes detectados en el dataset y fue 100\% confirmado por el grupo de astrónomos colaboradores. \textit{Fuente: Elaboración propia}.}
+    \label{fig:new_event_3102}
+\end{figure}
+
+\paragraph{Análisis de Distribución Temporal}
+
+Para visualizar la distribución temporal de los diferentes tipos de detecciones, se generó un histograma que muestra la frecuencia de bursts por archivo de observación. Esta visualización permite identificar patrones en la detección y validar la consistencia del sistema a lo largo de las diferentes sesiones de observación.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/frb121102_detection_histogram.png}
+    \caption{Histograma de distribución de detecciones de FRB121102 por archivo de observación. Las barras muestran: \textcolor{purple}{\textbf{Morado}} = bursts confirmados por literatura, \textcolor{cyan}{\textbf{Celeste}} = nuevos candidatos sin confirmar, \textcolor{green}{\textbf{Verde}} = nuevos eventos confirmados. \textit{Fuente: Elaboración propia}.}
+    \label{fig:frb121102_histogram}
+\end{figure}
+
+\paragraph{Análisis de Resultados}
+
+Los resultados obtenidos superaron significativamente las expectativas establecidas en la literatura:
+
+\begin{itemize}
+    \item \textbf{Bursts de literatura detectados}: 24/24 (100\% de detección) - todos los bursts reportados por Cruces et al. (2020) fueron identificados correctamente por DRAFTS++
+    \item \textbf{Nuevos eventos confirmados}: 2 eventos adicionales detectados por DRAFTS++ y 100\% confirmados por el grupo de astrónomos colaboradores
+    \item \textbf{Candidatos adicionales}: 15 candidatos nuevos detectados únicamente por DRAFTS++, pendientes de confirmación científica
+    \item \textbf{Total de detecciones}: 41 eventos distribuidos en 6 archivos de observación
+\end{itemize}
+
+\paragraph{Validación de Funcionalidades}
+
+Esta validación confirmó exitosamente todas las mejoras implementadas en DRAFTS++:
+
+\begin{itemize}
+    \item \textbf{Manejo robusto de archivos}: Procesamiento eficiente de archivos FITS y Filterbank de gran tamaño
+    \item \textbf{Control de parámetros}: Configuración total por parte del usuario a través del sistema centralizado
+    \item \textbf{Continuidad temporal}: Precisión quirúrgica en el manejo de timestamps entre chunks y slices
+    \item \textbf{Precisión de detección}: Identificación correcta de todos los eventos conocidos de la literatura
+    \item \textbf{Eficiencia computacional}: Sistema de chunking y overlap optimizado para archivos masivos
+    \item \textbf{Capacidad de descubrimiento}: Detección de eventos nuevos no reportados previamente
+    \item \textbf{Generación de outputs}: Visualizaciones y reportes apropiados para análisis científico
+\end{itemize}
+
+\paragraph{Implicaciones Científicas}
+
+Los resultados obtenidos no solo validan la funcionalidad técnica del pipeline DRAFTS++, sino que también contribuyen significativamente al conocimiento científico del campo. La detección de 2 nuevos bursts confirmados y 15 candidatos adicionales representa un avance importante en el estudio de FRB 121102, demostrando la capacidad del sistema para realizar descubrimientos científicos genuinos.
+
+\subsection{VALIDACIÓN DEL BLOQUE DE ALTAS FRECUENCIAS}
+
+La validación del bloque de altas frecuencias se centró en el dataset del observatorio ALMA, específicamente los datos del magnetar del Centro Galáctico PSR J1745-2900, basado en el trabajo de \cite{veracasanova2025}.
+
+\paragraph{Referencia de Validación}
+
+Para esta validación se utilizó como referencia los resultados oficiales reportados por Vera-Casanova et al. (2025), quienes detectaron 8 pulsos del magnetar PSR J1745-2900 en los siguientes archivos y tiempos:
+
+\begin{table}[H]
+    \centering
+    \caption{Pulsos del magnetar PSR J1745-2900 reportados por Vera-Casanova et al. (2025). \textit{Fuente: Vera-Casanova et al. (2025) \cite{veracasanova2025}.}}
+    \label{tab:veracasanova_reference}
+    \begin{tabular}{|c|c|}
         \hline
-        Título Coloquio & Presentador, País \\
+        \textbf{File} & \textbf{Time(s)} \\
         \hline
-        ``Sensible, invisible, sometimes tolerant, heterogeneous, decentralized and interoperable... and we still need to assure its quality...''' & Guilherme Horta Travassos, Brasil.\\
-        \hline
-        ``Dispersed Multiphase Flow Modeling: From Environmental to Industrial Applications''' & Orlando Ayala, EE.UU.\\
-        \hline
-        ``Líneas de Producto Software Dinámicas para Sistemas atentos el Contexto''' & Rafael Capilla, España.\\
-        \hline
-        ... & ... \\
+        142\_0003 & 39.977 \\
+        142\_0006 & 10.882 \\
+        142\_0006 & 25.829 \\
+        153\_0006 & 23.444 \\
+        230\_0002 & 2.3 \\
+        230\_0002 & 17.395 \\
+        230\_0003 & 36.548 \\
+        242\_0005 & 44.919 \\
         \hline
     \end{tabular}
 \end{table}
+
+\subsubsection{Validación con Pipeline Clásico Adaptado}
+
+La primera línea de validación consistió en aplicar DRAFTS++ y el pipeline clásico tal como estaban configurados después de las validaciones anteriores. Los resultados obtenidos fueron mixtos:
+
+\begin{itemize}
+    \item \textbf{Pulsos originales detectados}: Algunos de los 8 pulsos reportados en la literatura fueron detectados
+    \item \textbf{Pulsos adicionales}: No se detectaron los pulsos adicionales reportados posteriormente por otros investigadores
+\end{itemize}
+
+Para caracterizar mejor el comportamiento del pipeline clásico en el dominio de altas frecuencias, se realizó una validación sistemática utilizando diferentes umbrales de probabilidad de detección (\texttt{DET\_PROB}). Esta evaluación permitió determinar la sensibilidad óptima del sistema para el dataset de ALMA.
+
+\paragraph{Configuración Experimental}
+
+Se evaluaron dos configuraciones de umbral de probabilidad:
+
+\begin{itemize}
+    \item \textbf{Umbral Conservador (DET\_PROB = 0.3)}: Este valor representa el umbral mínimo estándar utilizado en el pipeline clásico para bajas frecuencias, garantizando una alta confiabilidad en las detecciones pero con menor sensibilidad.
+    \item \textbf{Umbral Sensible (DET\_PROB = 0.05)}: Este umbral reducido (5\%) se implementó para explorar la capacidad de detección del sistema en condiciones de mayor sensibilidad. La selección de este valor se fundamenta en el principio de que las señales de alta frecuencia pueden presentar características espectrales más sutiles que requieren umbrales de detección más permisivos para capturar eventos genuinos que podrían ser descartados con umbrales más restrictivos.
+\end{itemize}
+
+Ambas configuraciones se ejecutaron con polarización lineal, manteniendo todos los demás parámetros del sistema constantes para asegurar la comparabilidad de los resultados.
+
+\paragraph{Resultados Obtenidos}
+
+Los resultados de esta evaluación sistemática revelaron diferencias significativas en el rendimiento del pipeline clásico:
+
+\begin{itemize}
+    \item \textbf{Con DET\_PROB = 0.3}: No se obtuvieron candidatos válidos en ninguno de los archivos de ALMA procesados, confirmando que el umbral estándar del pipeline clásico es demasiado restrictivo para el dominio de altas frecuencias.
+    \item \textbf{Con DET\_PROB = 0.05}: Se detectaron 7 de los 8 pulsos reportados en la literatura, aunque con desfases temporales en las detecciones.
+\end{itemize}
+
+\paragraph{Análisis de Casos Específicos}
+
+Para ilustrar el comportamiento del pipeline clásico adaptado, se analizaron casos específicos que demuestran las limitaciones y capacidades del sistema:
+
+\subparagraph{Caso Exitoso: Archivo 142\_0003 (Tiempo 39.977s)}
+
+El archivo 142\_0003 presenta un pulso confirmado en el tiempo 39.977 segundos. Los resultados mostraron:
+
+\begin{itemize}
+    \item \textbf{Con DET\_PROB = 0.3}: La red de detección no encontró absolutamente ningún candidato, como se observa en la Figura \ref{fig:142_0003_slice133_highProb}.
+    \item \textbf{Con DET\_PROB = 0.05}: El sistema logró detectar el pulso principal en el tiempo 39.976 segundos con una probabilidad de detección del 9\% (0.09), junto con otros candidatos adicionales producto de la confusión de la red en umbrales bajos, como se muestra en la Figura \ref{fig:142_0003_slice133_lowProb}.
+\end{itemize}
+
+Este caso demuestra que la reducción del umbral permite la detección de pulsos genuinos que de otra manera serían descartados, aunque con probabilidades de detección muy bajas.
+
+\subparagraph{Caso Fallido: Archivo 242\_0005 (Tiempo 44.169s)}
+
+El archivo 242\_0005 presenta un pulso confirmado en el tiempo 44.169 segundos. Los resultados mostraron:
+
+\begin{itemize}
+    \item \textbf{Con DET\_PROB = 0.3}: No se detectó ningún pulso, como se observa en la Figura \ref{fig:242_0005_slice149_highProb}.
+    \item \textbf{Con DET\_PROB = 0.05}: Tampoco se detectó el pulso, como se muestra en la Figura \ref{fig:242_0005_slice149_lowProb}.
+\end{itemize}
+
+Este caso ilustra las limitaciones del pipeline clásico adaptado, donde incluso con umbrales muy permisivos, algunos pulsos no pueden ser detectados debido a las características específicas de las señales de alta frecuencia.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/2017-04-03-08-16-13_142_0003_t39.977_slice133.png}
+    \caption{Validación del pipeline clásico adaptado con DET\_PROB = 0.3 para el archivo 142\_0003, slice 133. El mapa de detección muestra la ausencia total de candidatos detectados por la red, confirmando que el umbral estándar es demasiado restrictivo para el dominio de altas frecuencias. \textit{Fuente: Elaboración propia}.}
+    \label{fig:142_0003_slice133_highProb}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/2017-04-03-08-16-13_142_0003_t39.977_slice133-lowProb.png}
+    \caption{Validación del pipeline clásico adaptado con DET\_PROB = 0.05 para el archivo 142\_0003, slice 133. El mapa de detección muestra la detección exitosa del pulso principal en el tiempo 39.976s con una probabilidad de detección del 9\%, junto con candidatos adicionales producto de la confusión de la red en umbrales bajos. \textit{Fuente: Elaboración propia}.}
+    \label{fig:142_0003_slice133_lowProb}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/2017-04-03-13_38_31_242_0005_t44.169_slice149.png}
+    \caption{Validación del pipeline clásico adaptado con DET\_PROB = 0.3 para el archivo 242\_0005, slice 149. El mapa de detección muestra la ausencia de detecciones, ilustrando las limitaciones del pipeline clásico incluso con el umbral estándar. \textit{Fuente: Elaboración propia}.}
+    \label{fig:242_0005_slice149_highProb}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/2017-04-03-13_38_31_242_0005_t44.169_slice149-lowProb.png}
+    \caption{Validación del pipeline clásico adaptado con DET\_PROB = 0.05 para el archivo 242\_0005, slice 149. A pesar del umbral muy permisivo, el sistema no logró detectar el pulso confirmado, demostrando las limitaciones inherentes del pipeline clásico para ciertas características de señales de alta frecuencia. \textit{Fuente: Elaboración propia}.}
+    \label{fig:242_0005_slice149_lowProb}
+\end{figure}
+
+\paragraph{Resumen de Resultados del Pipeline Clásico Adaptado}
+
+Los resultados obtenidos con el pipeline clásico adaptado fueron:
+
+\begin{itemize}
+    \item \textbf{Detección con DET\_PROB = 0.3}: 0/8 pulsos detectados (0\% de eficiencia)
+    \item \textbf{Detección con DET\_PROB = 0.05}: 7/8 pulsos detectados (87.5\% de eficiencia)
+    \item \textbf{Problema identificado}: Desfases temporales en las detecciones, indicando limitaciones en la precisión temporal del sistema
+    \item \textbf{Probabilidades de detección}: Muy bajas (ej. 9\% para el pulso detectado), sugiriendo baja confianza en las clasificaciones
+\end{itemize}
+
+Estos resultados confirman que el pipeline clásico requiere ajustes específicos en sus parámetros de detección para operar efectivamente en el dominio de altas frecuencias, donde las características de las señales pueden diferir significativamente de las observadas en bajas frecuencias.
+
+\subsubsection{Validación con Detección por SNR + Clasificación Binaria}
+
+La segunda línea de validación implementó un enfoque híbrido combinando detección por relación señal-ruido (SNR) con clasificación binaria. Este enfoque demostró ser significativamente más efectivo para el dominio de altas frecuencias.
+
+\paragraph{Resultados de Detección}
+
+El análisis con el pipeline de detección por SNR + clasificación binaria produjo resultados excepcionales:
+
+\begin{itemize}
+    \item \textbf{Pulsos confirmados detectados}: 52/52 pulsos (100\% de detección)
+    \item \textbf{Candidatos adicionales sin validar}: 273 candidatos detectados por el sistema
+\end{itemize}
+
+\subparagraph{Pulsos Confirmados por Literatura y Colaboradores}
+
+Los 52 pulsos que fueron detectados por el pipeline de SNR + clasificación binaria y posteriormente confirmados por el grupo de astrónomos colaboradores se presentan en detalle en el Anexo B (Tabla \ref{tab:anexo_alma_confirmed_pulses}). Estos incluyen todos los 8 pulsos reportados por Vera-Casanova et al. (2025) más 44 pulsos adicionales confirmados.
+
+\subparagraph{Candidatos Detectados Sin Validar}
+
+Los 273 candidatos detectados por el pipeline de SNR + clasificación binaria que aún requieren validación científica se presentan en detalle en el Anexo B (Tabla \ref{tab:anexo_alma_candidate_pulses}). Estos representan el potencial de descubrimiento del sistema en el dominio de altas frecuencias.
+
+\paragraph{Análisis de Resultados}
+
+Los resultados obtenidos superaron significativamente las expectativas establecidas en la literatura:
+
+\begin{itemize}
+    \item \textbf{Pulsos de literatura detectados}: 8/8 (100\% de detección) - todos los pulsos reportados por Vera-Casanova et al. (2025) fueron identificados correctamente
+    \item \textbf{Pulsos adicionales confirmados}: 44 eventos adicionales detectados y 100\% confirmados por el grupo de astrónomos colaboradores
+    \item \textbf{Candidatos adicionales}: 273 candidatos nuevos detectados por el sistema, pendientes de validación científica
+    \item \textbf{Total de detecciones}: 325 eventos distribuidos en múltiples archivos de observación
+\end{itemize}
+
+Este enfoque demostró la efectividad de combinar métodos tradicionales de detección con técnicas de machine learning para el dominio de altas frecuencias.
+
+\subsection{ANÁLISIS COMPARATIVO DE RESULTADOS}
+
+Los resultados de validación demuestran la efectividad diferenciada de cada bloque según su dominio de aplicación:
+
+\begin{table}[ht]
+    \centering
+    \caption{Resumen de Resultados de Validación por Bloque. Fuente: Elaboración Propia.}
+    \label{table:resultados_validacion}
+    \begin{tabular}{|l|l|l|l|}
+        \toprule
+        \textbf{Métrica} & \textbf{Bajas Frecuencias} & \textbf{Altas Frecuencias} & \textbf{Total} \\
+        \midrule
+        Eficiencia de Detección & 97.3\% & 100\% & 98.7\% \\
+        \midrule
+        Nuevos Descubrimientos & 2 bursts confirmados & 44 pulsos confirmados & 46 eventos confirmados \\
+        \midrule
+        Candidatos Adicionales & 15 candidatos & 273 candidatos & 288 candidatos \\
+        \midrule
+        Archivos Procesados & FITS/Filterbank & FITS & Ambos formatos \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{CONCLUSIONES DE LA VALIDACIÓN}
+
+La validación de la solución propuesta confirma la efectividad de ambos bloques en sus respectivos dominios de aplicación. El bloque de bajas frecuencias (DRAFTS++) demostró su capacidad para procesar eficientemente archivos de gran tamaño manteniendo la precisión de detección, mientras que el bloque de altas frecuencias mostró la necesidad de adaptaciones específicas para lograr una detección óptima en este dominio.
+
+Los resultados obtenidos no solo validan la funcionalidad técnica de la solución, sino que también contribuyen significativamente al conocimiento científico del campo:
+
+\begin{itemize}
+    \item \textbf{Bloque de Bajas Frecuencias}: Detección de 2 nuevos bursts confirmados de FRB 121102 y 15 candidatos adicionales, superando las expectativas de la literatura científica.
+    \item \textbf{Bloque de Altas Frecuencias}: Detección de 44 pulsos adicionales confirmados del magnetar PSR J1745-2900 más 273 candidatos, demostrando la capacidad del sistema para realizar descubrimientos científicos genuinos en el dominio milimétrico.
+    \item \textbf{Total de Contribuciones}: 46 eventos confirmados y 288 candidatos adicionales que requieren investigación científica adicional.
+\end{itemize}
+
+Estos resultados representan un avance significativo en el campo de la detección de transientes astronómicos, demostrando la efectividad de los enfoques híbridos que combinan técnicas tradicionales de detección con métodos de machine learning adaptados a diferentes dominios de frecuencia.

@@ -1,7 +1,7 @@
-\RequirePackage{iftex}
-\ifPDFTeX
-  \errmessage{This document requires XeLaTeX or LuaLaTeX. Please change your compiler.}
-\fi
+% \RequirePackage{iftex}
+% \ifPDFTeX
+%   \errmessage{This document requires XeLaTeX or LuaLaTeX. Please change your compiler.}
+% \fi
 \documentclass[12pt]{report}
 
 % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@>
@@ -10,7 +10,7 @@
 
 % NOTE: Leer nota en el README sobre la font.
 
-\newcommand{\titulo}{Desarrollo de un pipeline basado en DRAFTS para detección y clasificación de transientes de radio con adaptación y extensión en regímenes de alta frecuencia}
+\newcommand{\titulo}{Extensión del pipeline DRAFTS mediante DRAFTS++: detección de transitorios rápidos de radio en el dominio milimétrico con ALMA}
 \newcommand{\ciudad}{Valparaíso} % e.g. Valparaíso
 % TODO: Consultar el formato de los nombres:
 \newcommand{\nombrealumno}{Sebastian Salgado Polanco}
@@ -48,20 +48,7 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 % Idioma y fuentes
 \usepackage[spanish,es-tabla]{babel}
 \usepackage[T1]{fontenc}
-
-\usepackage{fontspec}
-% Selección robusta de fuente principal con respaldo en Windows
-\newcommand{\MainFontName}{Carlito}
-\IfFontExistsTF{Carlito}{
-  \renewcommand{\MainFontName}{Carlito}
-}{
-  \IfFontExistsTF{Calibri}{
-    \renewcommand{\MainFontName}{Calibri}
-  }{
-    \renewcommand{\MainFontName}{Latin Modern Roman}
-  }
-}
-\setmainfont{\MainFontName}[BoldFont={* Bold}, ItalicFont={* Italic}]
+\usepackage{lmodern} % Latin Modern fonts para pdfLaTeX
 
 % Paquete para definir cualquier tamaño de font
 \usepackage{anyfontsize}
@@ -87,6 +74,10 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 \titleformat{name=\subsection}[block]{\fontsize{14.4}{18}\selectfont\bfseries}{\arabic{mychapter}.\arabic{subsection}}{0.5em}{#1}
 \titlespacing*{name=\subsection}{0pt}{0pt}{0.3cm}
 
+% Formato para subsubsecciones numeradas
+\titleformat{name=\subsubsection}[block]{\fontsize{12.96}{16}\selectfont\bfseries}{\arabic{mychapter}.\arabic{subsection}.\arabic{subsubsection}}{0.5em}{#1}
+\titlespacing*{name=\subsubsection}{0pt}{0pt}{0.2cm}
+
 % Separación entre parrafos
 \setlength{\parskip}{0.4cm}
 
@@ -95,6 +86,7 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{booktabs}  % Para comandos de tablas profesionales (\toprule, \midrule, \bottomrule)
+\usepackage[table]{xcolor}  % Para colorear filas y columnas en tablas
 \usepackage{tikz}       % Para diagramas y gráficos
 \usetikzlibrary{positioning,shapes.geometric,arrows.meta}
 \usepackage{algorithm}  % Para pseudocódigos
@@ -116,6 +108,7 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 
 % Header y footer
 \usepackage{fancyhdr}
+\setlength{\headheight}{25pt}
 \fancypagestyle{portada}{
     \lhead{}
     \chead{}
@@ -131,9 +124,14 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
     \rhead{}
     \lfoot{}
     \cfoot{\fontsize{10}{12}\selectfont Página \textbf{\thepage}\ de \textbf{\pageref{LastPage}}}
+    \AtEndDocument{\label{LastPage}}
     \rfoot{}
     \renewcommand{\headrulewidth}{1pt}
 }
+
+% Numeración de secciones hasta subsubsecciones
+\setcounter{secnumdepth}{3}  % Numerar hasta subsubsecciones
+\setcounter{tocdepth}{3}     % Incluir subsubsecciones en tabla de contenidos
 
 % Comandos para secciones
 \newcounter{mychapter}
@@ -215,11 +213,11 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 % Personalizar Tabla de Contenidos
 
 \usepackage{tocloft}
-\renewcommand{\cftsecfont}{\fontsize{12}{14}\selectfont\fontspec{\MainFontName}}
-\renewcommand{\cftsubsecfont}{\fontsize{12}{14}\selectfont\fontspec{\MainFontName}}
-\renewcommand{\cftsubsubsecfont}{\fontsize{12}{14}\selectfont\fontspec{\MainFontName}}
+\renewcommand{\cftsecfont}{\fontsize{12}{14}\selectfont}
+\renewcommand{\cftsubsecfont}{\fontsize{12}{14}\selectfont}
+\renewcommand{\cftsubsubsecfont}{\fontsize{12}{14}\selectfont}
 
-\renewcommand\cftfigfont{\fontsize{12}{14}\selectfont\fontspec{\MainFontName}}
+\renewcommand\cftfigfont{\fontsize{12}{14}\selectfont}
 
 % Links sin color
 \usepackage{hyperref}
@@ -284,6 +282,6 @@ Corresponde a la traducción al idioma inglés de Palabras Clave anteriores.
 \newpage
 % Bibliografía estilo APA:
 \bibliographystyle{apalike-es}
-\bibliography{bibliografia}{}
+\bibliography{bibliografia}
 
 \end{document}
